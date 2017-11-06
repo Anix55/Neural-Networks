@@ -9,7 +9,8 @@ class Neural_Network(object):
         self.hiddenLayerSize = hidden_
         self.numHiddenLayer = numHiddenLayer_
         self.numExamples = numExamples_
-        self.scalar = 0.0000000001 # LEARNING RATE: Why does ReLU produce such large dJdW values?
+        self.learningRate = 0.000000001 # LEARNING RATE: Why does ReLU produce such large dJdW values?
+        self.weightDecay = 0.5
         # in -> out
         self.weights = [] # stores matrices of each layer of weights
         self.z = [] # stores matrices of each layer of weighted sums
@@ -52,34 +53,42 @@ class Neural_Network(object):
 
     def sigmoidPrime(self, z):
         # Derivative of sigmoid function
-        return 1-self.sigmoid(z)
+        return self.sigmoid(x)*(1-self.sigmoid(z))
 
     def ReLU(self, z):
         # Apply activation function
+        '''
         for (i, j), item in np.ndenumerate(z):
             if (item < 0):
                 item *= 0.01
             else:
                 item = item
-        return z        
+        return z'''
+        return np.multiply((z < 0), z * 0.01)  + np.multiply((z >= 0), z)
 
 
     def ReLUPrime(self, z):
-        # Derivative of ReLU activation function
+        # Derivative of ReLU activation function\
+        '''
         for (i, j), item in np.ndenumerate(z):
             if (item < 0):
                 item = 0.01
             else:
                 item = 1
-
-        return z
+        return z'''
+        return (z < 0) * 0.01 + (z >= 0) * 1
 
     def forward(self, X):
         # Propagate outputs through network
-
+        self.z = []
+        self.a = []
         self.z.append(np.dot(X, self.weights[0]) + self.biases[0])
+        
         self.a.append(self.ReLU(self.z[0]))
-
+        
+        #viewZ = self.z
+        #viewA = self.a
+        
         for i in range(1, self.numHiddenLayer):
             self.z.append(np.dot(self.a[-1], self.weights[i]) + self.biases[i])
             self.a.append(self.ReLU(self.z[-1]))
@@ -94,17 +103,23 @@ class Neural_Network(object):
         # out -> in
         dJdW = [] # stores matrices of each dJdW (equal in size to self.weights[])
         delta = [] # stores matrices of each backpropagating error
-
         self.yHat = self.forward(X)
+        
+        # Quantifying Error
+        J = np.multiply((y-self.yHat),(y-self.yHat)) * 0.5
+        Javrg = np.dot(J.T, np.mat([1 for x in range(self.numExamples)]).reshape(self.numExamples, 1))
+        print(Javrg.item(0))
+        
         delta.insert(0,np.multiply(-(y-self.yHat), self.ReLUPrime(self.z[-1]))) # delta = (y-yHat)(sigmoidPrime(final layer unactivated))
-        dJdW.insert(0, np.dot(self.a[-2].T, delta[0])) # dJdW
+        dJdW.insert(0, np.dot(self.a[-2].T, delta[0]) + (self.weightDecay*self.weights[-1])) # dJdW
+        
         for i in range(len(self.weights)-1, 1, -1):
             # Iterate from self.weights[-1] -> self.weights[1]
             delta.insert(0, np.multiply(np.dot(delta[0], self.weights[i].T), self.ReLUPrime(self.z[i-1])))
-            dJdW.insert(0, np.dot(self.a[i-2].T, delta[0]))
+            dJdW.insert(0, np.dot(self.a[i-2].T, delta[0]) + (self.weightDecay*self.weights[i-1]))
 
         delta.insert(0, np.multiply(np.dot(delta[0], self.weights[1].T), self.ReLUPrime(self.z[0])))
-        dJdW.insert(0, np.dot(X.T, delta[0]))
+        dJdW.insert(0, np.dot(X.T, delta[0]) + (self.weightDecay*self.weights[0]))
 
 
         return dJdW
@@ -113,13 +128,13 @@ class Neural_Network(object):
         for t in range(60000):
             dJdW = self.backProp(X, y)
             for i in range(len(dJdW)):
-                self.weights[i] -= self.scalar*dJdW[i]
+                self.weights[i] -= self.learningRate*dJdW[i]
 
 # Instantiating Neural Network
-inputs = [int(np.random.randint(0,100)) for x in range(100)]
-x = np.mat([x for x in inputs]).reshape(100,1)
-y = np.mat([x+1 for x in inputs]).reshape(100,1)
-NN = Neural_Network(1,3,1,1,100)
+inputs = [int(np.random.randint(0,1000)) for x in range(1000)]
+x = np.mat([x for x in inputs]).reshape(1000,1)
+y = np.mat([x+1 for x in inputs]).reshape(1000,1)
+NN = Neural_Network(1,3,1,1,1000)
 
 
 # Training
@@ -127,11 +142,12 @@ print("INPUT: ", end = '\n')
 print(x, end = '\n\n')
 
 print("BEFORE TRAINING", NN.forward(x), sep = '\n', end = '\n\n')
+print("ERROR: ")
 NN.train(x,y)
-print("AFTER TRAINING", NN.forward(x), sep = '\n', end = '\n\n')
+print("\nAFTER TRAINING", NN.forward(x), sep = '\n', end = '\n\n')
 
 # Testing
-test = np.mat([int(np.random.randint(0,100)) for x in range(100)]).reshape(100,1)
+test = np.mat([int(np.random.randint(0,10080)) for x in range(1000)]).reshape(1000,1)
 print("TEST INPUT:", test, sep = '\n', end = '\n\n')
 print(NN.forward(test), end = '\n\n')
 
