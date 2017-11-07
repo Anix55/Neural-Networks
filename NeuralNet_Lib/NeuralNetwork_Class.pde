@@ -14,12 +14,11 @@ class Neural_Network {
   Matrix [] a; // stores matrices of each layer of activity
   Matrix [] z; // stores each layer of weighted sums
   Matrix [] biases; // stores all baises
-  float [] chromosome; // used to initialize weights
   float [] displaySize; // controls display size of the NN
   float [][][] nodePos; // stores positions of nodes on screen
   float nodeSize;
   int inputLayerSize, hiddenLayerSize, outputLayerSize, numHiddenLayers, numExamples, MAX;
-
+  float [] visWeights; // used to visualize weights
   Neural_Network() {
 
     //Define HyperParameters
@@ -34,6 +33,12 @@ class Neural_Network {
     biases = new Matrix[numHiddenLayers+1];
     a = new Matrix[numHiddenLayers+1]; // a[1] (last elem) is yHat
     z = new Matrix[numHiddenLayers+1]; // z[1] (last elem) is yHat w/o sigmoid
+    if (numHiddenLayers == 0) {
+      visWeights = new float[(inputLayerSize + 1)*outputLayerSize];
+    } else {
+      visWeights = new float[(inputLayerSize + 1)*hiddenLayerSize + (numHiddenLayers - 1)*(hiddenLayerSize + 1)*(hiddenLayerSize) + (hiddenLayerSize + 1)*outputLayerSize];
+    }
+
 
     /*
       INTIALIZE WEIGHTS OF NEURAL NETWORK USING CHROMOSOME
@@ -48,13 +53,15 @@ class Neural_Network {
     float [][] B;
     float [] b;
 
-
+    int vis_iter = 0;
     if (numHiddenLayers == 0) {
       // Weight and Bias Matrix between input and output layer
       float [][] W = new float [inputLayerSize][outputLayerSize];
       for (int i = 0; i < inputLayerSize; i++) {
         for (int j = 0; j < outputLayerSize; j++) {
           W[i][j] = random(-1, 1);
+          visWeights[vis_iter] = W[i][j];
+          vis_iter++;
         }
       }
       weights[weight_iter] = new Matrix(W);
@@ -64,6 +71,8 @@ class Neural_Network {
       b = new float[outputLayerSize];
       for (int i = 0; i < outputLayerSize; i++) {
         b[i] = random(-1, 1);
+        visWeights[vis_iter] = b[i];
+        vis_iter++;
       }
       for (int i = 0; i < numExamples; i++) {
         B[i] = b;
@@ -76,6 +85,8 @@ class Neural_Network {
       for (int i = 0; i < inputLayerSize; i++) {
         for (int j = 0; j < hiddenLayerSize; j++) {
           W[i][j] = random(-1, 1);
+          visWeights[vis_iter] = W[i][j];
+          vis_iter++;
         }
       }
       weights[weight_iter] = new Matrix(W);
@@ -85,6 +96,8 @@ class Neural_Network {
       b = new float[hiddenLayerSize];
       for (int i = 0; i < hiddenLayerSize; i++) {
         b[i] = random(-1, 1);
+        visWeights[vis_iter] = b[i];
+        vis_iter++;
       }
       for (int i = 0; i < numExamples; i++) {
         B[i] = b;
@@ -99,6 +112,8 @@ class Neural_Network {
         for (int i = 0; i < hiddenLayerSize; i++) {
           for (int j = 0; j < hiddenLayerSize; j++) {
             W[i][j] = random(-1, 1);
+            visWeights[vis_iter] = W[i][j];
+            vis_iter++;
           }
         }
         weights[weight_iter] = new Matrix(W);
@@ -107,6 +122,8 @@ class Neural_Network {
         b = new float [hiddenLayerSize];
         for (int i = 0; i < hiddenLayerSize; i++) {
           b[i] = random(-1, 1);
+          visWeights[vis_iter] = b[i];
+          vis_iter++;
         }
         for (int i = 0; i < numExamples; i++) {
           B[i] = b;
@@ -121,6 +138,8 @@ class Neural_Network {
       for (int i = 0; i < hiddenLayerSize; i++) {
         for (int j = 0; j < outputLayerSize; j++) {
           W[i][j] = random(-1, 1);
+          visWeights[vis_iter] = W[i][j];
+          vis_iter++;
         }
       }
       weights[weight_iter] = new Matrix(W);
@@ -129,6 +148,8 @@ class Neural_Network {
       b = new float [outputLayerSize];
       for (int i = 0; i < outputLayerSize; i++) {
         b[i] = random(-1, 1);
+        visWeights[i] = b[i];
+        vis_iter++;
       }
       for (int i = 0; i < numExamples; i++) {
         B[i] = b;
@@ -178,6 +199,16 @@ class Neural_Network {
     initNN();
   }
 
+  void setBatchSize(int numExamples_) {
+    /*
+      void setBatchSize(int numExamples) - changes the number of rows for biases
+     int numExamples - number of rows for input
+     */
+    if (numExamples_ < numExamples) {
+      for (int i = 0; i < biases.length; i++) {
+      }
+    }
+  }
   float[][] logistic(float[][] z) {
     /*
       float [][] logistic(float[][] z) - Applies logistic sigmoid function
@@ -190,7 +221,7 @@ class Neural_Network {
     }
     return z;
   }
-  
+
   float[][] logistic_Prime(float[][] z) {
     /*
       float [][] logistic_Prime(float[][] z) - Applies the derivative of logistic sigmoid function
@@ -216,7 +247,7 @@ class Neural_Network {
     }
     return z;
   }
-  
+
   float[][] hypTan_Prime(float[][] z) {
     /*
       float [][] hypTan_Prime(float[][] z) - Applies the derivative of thhe hyperbolic tangent sigmoid activation funtion
@@ -246,7 +277,7 @@ class Neural_Network {
     }
     return z;
   }
-  
+
   float[][] PReLU_Prime(float[][] z) {
     /*
       float [][] ReLU_Prime(float[][] z) - Applies the derivative of the rectified linear unit activation funtion
@@ -301,34 +332,31 @@ class Neural_Network {
     } 
     yHat = new Matrix( a[a.length - 1].matrix );
   }
-  
-  void backProp(){
+
+  Matrix[] backProp(Matrix X, Matrix y) {
     /*
-      void backProp() - used to train Neural Network
-      Determines the contribution of each weight towards the error
-    */
+      void backProp(Matrix X, MatrixY) - used to train Neural Network
+     Determines the contribution of each weight towards the error
+     */
     // IN PROGRESS
-    if (numHiddenLayers == 0){
-      // Matrix dJdW = new Matrix(new float[inputLayerSize][numExamples]);
-      Matrix W = new Matrix(weights[weights.length-1].matrix);
-      Matrix dJdW1 = new Matrix(hypTan_Prime(x.dotProduct(W)));
-    }
-    if (numHiddenLayers == 1){
-      Matrix W2 = new Matrix(weights[weights.length-1].matrix);
-      Matrix W1 = new Matrix(weights[weights.length-2].matrix);
-      Matrix dJdW2 = new Matrix(hypTan_Prime(x.dotProduct(W2)));
-      Matrix dJdW1 = new Matrix(hypTan_Prime(x.dotProduct(W1)));
-    }
+    Matrix [] dJdW = new Matrix[numHiddenLayers+1]; // stores matrices of each dJdW value
+    Matrix[] delta = new Matrix[numHiddenLayers+1]; // stores matrices of each backpropagating error
+    return dJdW;
   }
-  
-  void training(Matrix X, Matrix y){
+
+  void train(Matrix X, Matrix y) {
     /*
-      void training() - trains the Neural Network using feedForward and backProp
-      Matrix X - inputs for feed forward
-      Matrix y - correct answers
-    */
-    forward(X.matrix);
-    
+      void traing() - trains the Neural Network using feedForward and backProp
+     Matrix X - inputs for feed forward
+     Matrix y - correct answers
+     */
+     Matrix [] dJdW = new Matrix[numHiddenLayers+1];
+     for (int t = 0; t < 60000; t++){
+       dJdW = backProp(X, y);
+       for (int i = 0; i < dJdW.length; i++){
+         weights[i].subtractMatrixLocal(dJdW[i]);
+       }
+     }
   }
 
   void initNN() {
@@ -387,7 +415,7 @@ class Neural_Network {
       void render() - Visualizes the Neural Network in the top corner of the screen
      */
 
-    int chrm_iter = 0;
+    int vis_iter = 0;
     float thickness = 0; // Visualizes the magnitude of the weight
     float translucence = 0; // Visualizes the magnitude of node activity
 
@@ -395,30 +423,30 @@ class Neural_Network {
       // Draw Synapses between input and output layer
       for (int p1 = 0; p1 < inputLayerSize + 1; p1++) { // +1 for bias
         for (int p2 = 0; p2 < outputLayerSize; p2++) { // no bias in output layer
-          thickness = map(abs(chromosome[chrm_iter]), 0, 1, 0, 2);
-          if (chromosome[chrm_iter] < 0) {
+          thickness = map(abs(visWeights[vis_iter]), 0, 1, 0, 2);
+          if (visWeights[vis_iter] < 0) {
             stroke(255, 0, 0);
           } else {
             stroke(0, 255, 0);
           }
           strokeWeight(thickness);
           line(nodePos[0][p1][0], nodePos[0][p1][1], nodePos[1][p2][0], nodePos[1][p2][1]);
-          chrm_iter++;
+          vis_iter++;
         }
       }
     } else {
       //Draw Synapses between input and hidden layer
       for (int p1 = 0; p1 < inputLayerSize + 1; p1++) { // +1 for bias
         for (int p2 = 0; p2 < hiddenLayerSize; p2++) { // exclude bias
-          thickness = map(abs(chromosome[chrm_iter]), 0, 1, 0, 2);
-          if (chromosome[chrm_iter] < 0) {
+          thickness = map(abs(visWeights[vis_iter]), 0, 1, 0, 2);
+          if (visWeights[vis_iter] < 0) {
             stroke(255, 0, 0);
           } else {
             stroke(0, 255, 0);
           }
           strokeWeight(thickness);
           line(nodePos[0][p1][0], nodePos[0][p1][1], nodePos[1][p2][0], nodePos[1][p2][1]);
-          chrm_iter++;
+          vis_iter++;
         }
       }
 
@@ -426,15 +454,15 @@ class Neural_Network {
       for (int i = 1; i < numHiddenLayers; i++) { // loop up until 2nd last layer
         for (int p1 = 0; p1 < hiddenLayerSize+1; p1++) {  // +1 for bias
           for (int p2 = 0; p2 < hiddenLayerSize; p2++) { // exclude bias
-            thickness = map(abs(chromosome[chrm_iter]), 0, 1, 0, 2);
-            if (chromosome[chrm_iter] < 0) {
+            thickness = map(abs(visWeights[vis_iter]), 0, 1, 0, 2);
+            if (visWeights[vis_iter] < 0) {
               stroke(255, 0, 0);
             } else {
               stroke(0, 255, 0);
             }
             strokeWeight(thickness);
             line(nodePos[i][p1][0], nodePos[i][p1][1], nodePos[i+1][p2][0], nodePos[i+1][p2][1]);
-            chrm_iter++;
+            vis_iter++;
           }
         }
       }
@@ -442,15 +470,15 @@ class Neural_Network {
       // Draw Synapses between hidden and output layer
       for (int p1 = 0; p1 < hiddenLayerSize + 1; p1++) { // +1 for bias
         for (int p2 = 0; p2 < outputLayerSize; p2++) { // no bias in output layer
-          thickness = map(abs(chromosome[chrm_iter]), 0, 1, 0, 2);
-          if (chromosome[chrm_iter] < 0) {
+          thickness = map(abs(visWeights[vis_iter]), 0, 1, 0, 2);
+          if (visWeights[vis_iter] < 0) {
             stroke(255, 0, 0);
           } else {
             stroke(0, 255, 0);
           }
           strokeWeight(thickness);
           line(nodePos[numHiddenLayers][p1][0], nodePos[numHiddenLayers][p1][1], nodePos[numHiddenLayers+1][p2][0], nodePos[numHiddenLayers+1][p2][1]);
-          chrm_iter++;
+          vis_iter++;
         }
       }
     }
