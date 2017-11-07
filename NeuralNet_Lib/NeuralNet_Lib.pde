@@ -6,15 +6,24 @@
 
 
 
-Neuro_Evolution NeuroEvo;
+Neural_Network NN;
 
 float [][] inputs = new float[1][5];
 
 void setup() {
   fullScreen();
   //size(1000, 700);
-  NeuroEvo = new Neuro_Evolution(new float[0], false);
-
+  NN = new Neural_Network();
+  float [][] in = new float[5][5];
+  for (int i = 0; i < 5; i++){
+    for (int j = 0; j < 5; j++){
+      in[i][j] = random(-1,1);
+    }
+  }
+  Matrix m = new Matrix(in);
+  m.showMatrix();
+  m.deleteLocal(3,1);
+  m.showMatrix();
   
 }
 
@@ -24,6 +33,6 @@ void draw() {
   for (int i = 0; i < 5; i++){
     inputs[0][i] = random(-1, 1);
   }
-  NeuroEvo.forward(inputs);
-  NeuroEvo.render();
+  NN.forward(inputs);
+  NN.render();
 }
