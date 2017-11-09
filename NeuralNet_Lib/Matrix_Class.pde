@@ -1,5 +1,5 @@
 /* Matrix Module
- Methods: setElem(), getElem(), showMatrix(), copyMatrix(), addMatrix(), subtractMatrix(), transpose()
+ Methods: setElem(), getElem(), showMatrix(), copyMatrix(), addMatrix(), subtractMatrix(), transpose(), multiplyScalar(), dotProduct(), equalsTo()
  
  */
 class Matrix {
@@ -16,6 +16,79 @@ class Matrix {
     matrix = m;
     row = m.length;
     col = m[0].length;
+  }
+
+  Matrix(String elemStr, int row_, int col_) {
+    /*
+      Matrix(String m, int row_, int col_) - Matrix constructor (Overloaded)
+     String m - values
+     int row_, col_: dimensionality of matrix
+     */
+    row = row_;
+    col = col_;
+    matrix = new float[row][col];
+    String [] elems = split(elemStr, ';');
+    int iter = 0;
+    if (elems.length == row * col) {
+      for (int i  = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+          matrix[i][j] = float(elems[iter]);
+          iter++;
+        }
+      }
+    } else {
+      println("ERROR: dimensionality error");
+    }
+  }
+
+  Matrix multiplyScalar(float scalar) {
+    /*
+      Matrix multiplyScalar(float scalar) - return scaled version of this matrix
+     float scalar - scalar value
+     */
+    Matrix result = new Matrix(new float [row][col]);
+    for (int i = 0; i < row; i++) {
+      for (int j = 0; j < col; j++) {
+        result.matrix[i][j] = matrix[i][j] * scalar;
+      }
+    }
+    return result;
+  }
+  
+  void multiplyScalarLocal(float scalar) {
+    /*
+      Matrix multiplyScalar(float scalar) - multiply this matrix  by a scalar
+     float scalar - scalar value
+     */
+    for (int i = 0; i < row; i++) {
+      for (int j = 0; j < col; j++) {
+        matrix[i][j] = matrix[i][j] * scalar;
+      }
+    }
+  }
+
+  Matrix multiplyMatrix(Matrix m) {
+    /*
+      Matrix multiple(Matrix m) - return a matrix of the product of two matrix of same dim
+     */
+    Matrix result = new Matrix(new float[row][col]);
+    for (int i = 0; i < row; i++) {
+      for (int j = 0; j < col; j++) {
+        result.matrix[i][j] = matrix[i][j] * m.matrix[i][j];
+      }
+    }
+    return result;
+  }
+
+  void multiplyMatrixLocal(Matrix m) {
+    /*
+      Matrix multiple(Matrix m) - compute the product of two matrix of same dim
+     */
+    for (int i = 0; i < row; i++) {
+      for (int j = 0; j < col; j++) {
+        matrix[i][j] *= m.matrix[i][j];
+      }
+    }
   }
 
   void deleteLocal(int index, int axis) {
@@ -50,7 +123,7 @@ class Matrix {
       matrix = t;
     }
   }
-  
+
   void setElem(int r, int c, float x) {
     /*
       void setElem(int r, int c, float x) - change an element with the matric
@@ -94,34 +167,34 @@ class Matrix {
     matrix = m.matrix;
   }
 
-  float[][] addMatrix(Matrix m) {
+  Matrix addMatrix(Matrix m) {
     /*
-      float[][] addMatrix(Matrix m) - return the sum of the values of m and this matrix
+      Matrix addMatrix(Matrix m) - return the sum of the values of m and this matrix
      Matrix m - matrix object
      */
-    float [][] result = new float[row][col];
+    Matrix result = new Matrix(new float[row][col]);
     for (int r = 0; r < row; r++) {
       for (int c = 0; c < col; c++) {
-        result[r][c] = matrix[r][c] + m.matrix[r][c];
+        result.matrix[r][c] = matrix[r][c] + m.matrix[r][c];
       }
     }
     return result;
   }
 
-  float[][] subtractMatrix(Matrix m) {
+  Matrix subtractMatrix(Matrix m) {
     /*
-      float[][] subtractMatrix(Matrix m) - return the difference b/w the values of m and this matrix
+      Matrix subtractMatrix(Matrix m) - return the difference b/w the values of m and this matrix
      Matrix m - matrix object
      */
-    float [][] result = new float[row][col];
+    Matrix result = new Matrix(new float[row][col]);
     for (int r = 0; r < row; r++) {
       for (int c = 0; c < col; c++) {
-        result[r][c] = matrix[r][c] - m.matrix[r][c];
+        result.matrix[r][c] = matrix[r][c] - m.matrix[r][c];
       }
     }
     return result;
   }
-  
+
   void subtractMatrixLocal(Matrix m) {
     /*
       void subtractMatrix(Matrix m) - subtract Matrix m from this matrix
@@ -133,27 +206,22 @@ class Matrix {
       }
     }
   }
-  
-  float[][]  transpose() {
+
+  Matrix transpose() {
     /*
-      float[][] transpose - "rotate" the matrix and return the new value
+      Matrix transpose - "rotate" the matrix and return the new value
      */
-    float [][] result = new float[col][row];
+    Matrix result = new Matrix(new float[col][row]);
 
     for (int c = 0; c < col; c++) {
       for (int r = 0; r < row; r++) {
-        result[c][r] = matrix[r][c];
+        result.matrix[c][r] = matrix[r][c];
       }
     }
-    /*
-     matrix = result;
-     row = matrix.length;
-     col = matrix[0].length;
-     */
     return result;
   }
 
-  void  transposeLocal() {
+  void transposeLocal() {
     /*
       void transpose - "rotate" this matrix
      */
@@ -170,12 +238,12 @@ class Matrix {
     col = matrix[0].length;
   }
 
-  float[][] dotProduct(Matrix m) {
+  Matrix dotProduct(Matrix m) {
     /*
-      float[][] dotProduct(Matrix m) - return the dot product of m and this
+      Matrix dotProduct(Matrix m) - return the dot product of m and this
      Matrix m - matrix object
      */
-    float [][] result = new float[row][m.col];
+    Matrix result = new Matrix(new float[row][m.col]);
     for (int r = 0; r < row; r++) {
 
       // current row of first matrix
@@ -194,9 +262,27 @@ class Matrix {
         for (int i = 0; i < colVec.length; i++) {
           data += rowVec[i] * colVec[i];
         }
-        result[r][c] = data;
+        result.matrix[r][c] = data;
       }
     }
     return result;
   }
+  
+  boolean equalsTo(Matrix m){
+    boolean result = true;
+    if (row == m.row && col == m.col){
+      for (int i = 0; i < row; i++){
+        for (int j = 0; j < col; j++){
+          if (matrix[i][j] != m.matrix[i][j]){
+            result = false;
+            break;
+          }
+        }
+      }
+    }else{
+      result = false;
+    }
+    return result;
+  }
+  
 }
