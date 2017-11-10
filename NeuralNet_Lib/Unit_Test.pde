@@ -1,338 +1,773 @@
-/* Matrix Module
- Methods: setElem(), getElem(), showMatrix(), copyMatrix(), addMatrix(), subtractMatrix(), transpose(), multiplyScalar(), dotProduct(), equalTo(), almostEqualTo, relativeError()
- 
- */
-class Matrix {
-  // Variables to keep track of
-  int row;
-  int col;
-  float [][] matrix;
+//<>// //<>//
+class UnitTest {
+  boolean errorFlag;
+  Matrix m;
+  Matrix n;
+  Matrix r;
+  Matrix s;
+  Neural_Network NN;
 
-  Matrix(float [][] m) {
-    /*
-      Matrix(float[][]m) - Matrix constructor
-     float[][] m - values
-     */
-    matrix = m;
-    row = m.length;
-    col = m[0].length;
+  UnitTest() {
   }
 
-  Matrix(String elemStr, int row_, int col_) {
-    /*
-      Matrix(String m, int row_, int col_) - Matrix constructor (Overloaded)
-     String m - values
-     int row_, col_: dimensionality of matrix
-     */
-    row = row_;
-    col = col_;
-    matrix = new float[row][col];
-    String [] elems = split(elemStr, ';');
-    int iter = 0;
-    if (elems.length == row * col) {
-      for (int i  = 0; i < row; i++) {
-        for (int j = 0; j < col; j++) {
-          matrix[i][j] = float(elems[iter]);
-          iter++;
-        }
-      }
-    } else {
-      println("ERROR: dimensionality error");
+  // MATRIX TESTING
+
+  void instantiateMatrix() {
+    println("TESTING CONSTRUCTOR");
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5"), 2, 2);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
     }
-  }
-
-  Matrix multiplyScalar(float scalar) {
-    /*
-      Matrix multiplyScalar(float scalar) - return scaled version of this matrix
-     float scalar - scalar value
-     */
-    Matrix result = new Matrix(new float [row][col]);
-    for (int i = 0; i < row; i++) {
-      for (int j = 0; j < col; j++) {
-        result.matrix[i][j] = matrix[i][j] * scalar;
+    finally {
+      if (!errorFlag) {
+        println("Test 1: Success");
+        m.showMatrix();
+      } else {
+        println("Test 1: Failure");
       }
     }
-    return result;
-  }
 
-  void multiplyScalarLocal(float scalar) {
-    /*
-      Matrix multiplyScalar(float scalar) - multiply this matrix  by a scalar
-     float scalar - scalar value
-     */
-    for (int i = 0; i < row; i++) {
-      for (int j = 0; j < col; j++) {
-        matrix[i][j] = matrix[i][j] * scalar;
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5;4;5;6;2;7;3"), 5, 2);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag) {
+        println("Test 2: Success");
+        m.showMatrix();
+      } else {
+        println("Test 2: Failure");
       }
     }
-  }
 
-  Matrix multiplyMatrix(Matrix m) {
-    /*
-      Matrix multiple(Matrix m) - return a matrix of the product of two matrix of same dim
-     */
-    Matrix result = new Matrix(new float[row][col]);
-    for (int i = 0; i < row; i++) {
-      for (int j = 0; j < col; j++) {
-        result.matrix[i][j] = matrix[i][j] * m.matrix[i][j];
+    boolean errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5;5"), 1, 5);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag) {
+        println("Test 3: Success");
+        m.showMatrix();
+      } else {
+        println("Test 3: Failure");
       }
     }
-    return result;
-  }
 
-  void multiplyMatrixLocal(Matrix m) {
-    /*
-      Matrix multiple(Matrix m) - compute the product of two matrix of same dim
-     */
-    for (int i = 0; i < row; i++) {
-      for (int j = 0; j < col; j++) {
-        matrix[i][j] *= m.matrix[i][j];
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5;5;3;26;4;5;2;6;3;6;2;6;5;42;4;23;4"), 4, 5);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag) {
+        println("Test 4: Success");
+        m.showMatrix();
+      } else {
+        println("Test 4: Failure");
       }
     }
   }
+  void multiplyScalarTest() {
+    println("\nTESTING SCALAR MULTIPLICATION");
+    errorFlag = false;
 
-  void deleteLocal(int index, int axis) {
-    /*
-      void delete(int index, int axis) - deletes entire rows or columns
-     int axis - 0: row, 1: column
-     int index - index of row/column to delete
-     */
-    if (axis == 0) {
-      // Delete specified row
-      row -= 1;
-      float[][] t = new float[row][col];
-      for (int i = 0, i_ = 0; i < row+1; i++) {
-        if (i != index) {
-          t[i_] = matrix[i];
-          i_++;
-        }
-      }
-      matrix = t;
-    } else {
-      // Delete specified column
-      col -= 1;
-      float[][] t = new float[row][col];
-      for (int i = 0; i < row; i++) {
-        for (int j = 0, j_ = 0; j < col+1; j++) {
-          if (j != index) {
-            t[i][j_] = matrix[i][j];
-            j_++;
-          }
-        }
-      }
-      matrix = t;
+    try {
+      m = new Matrix(new String("4;4;2;5"), 2, 2);
+      m.multiplyScalarLocal(0.01);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
     }
-  }
-
-  void setElem(int r, int c, float x) {
-    /*
-      void setElem(int r, int c, float x) - change an element with the matric
-     int r, c - position in the matrix
-     flaot x - new value
-     */
-
-    matrix[r][c] = x;
-  }
-
-  float getElem(int r, int c) {
-    /*
-      float getElem(int r, int c) - return specific element
-     int r, c- position in thematrix
-     */
-    return matrix[r][c];
-  }
-
-  void showMatrix() {
-    /*
-      void showMatrix() - prints the matrix to the console
-     */
-    String buff = new String();
-    for (int r = 0; r < row; r++) {
-      buff = "";
-      for (int c = 0; c < col; c++) {
-        buff = buff + str(matrix[r][c]) + " ";
-      }
-      println(buff);
-    }
-    println("\n");
-  }
-  
-  float matrixNorm(){
-    /*
-      float matrixNorm() - returns norm of the matrix
-    */
-    float result = 0;
-    for (int i  = 0; i < row; i++){
-      for (int j = 0; j < col; j++){
-        result += pow(matrix[i][j], 2);
+    finally {
+      if (!errorFlag) {
+        println("Test 1: Success");
+        //m.showMatrix();
+      } else {
+        println("Test 1: Failure");
       }
     }
-    result = sqrt(result);
-    return result;
-  }
-  float relativeError(Matrix m){
-    /*
-      float relativeError(Matrix m): quantifies error between a and b
-    */
 
-    float normDiff = subtractMatrix(m).matrixNorm();
-    float normSum = addMatrix(m).matrixNorm();
-    float result = normDiff / normSum;
-    return result;
-  }
-  
-  void copyMatrix(Matrix m) {
-    /*
-      void copyMatrix(matrix m) - copy the values from m into this matrix
-     Matrix m - matrix object
-     */
-    row = m.row;
-    col = m.col;
-    matrix = m.matrix;
-  }
 
-  Matrix addMatrix(Matrix m) {
-    /*
-      Matrix addMatrix(Matrix m) - return the sum of the values of m and this matrix
-     Matrix m - matrix object
-     */
-    Matrix result = new Matrix(new float[row][col]);
-    for (int r = 0; r < row; r++) {
-      for (int c = 0; c < col; c++) {
-        result.matrix[r][c] = matrix[r][c] + m.matrix[r][c];
-      }
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5;43;5;3;53;3"), 3, 3);
+      n = m.multiplyScalar(10);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
     }
-    return result;
-  }
-
-  void addMatrixLocal(Matrix m) {
-    /*
-      Matrix addMatrix(Matrix m) - return the sum of the values of m and this matrix
-     Matrix m - matrix object
-     */
-    for (int r = 0; r < row; r++) {
-      for (int c = 0; c < col; c++) {
-        matrix[r][c] += m.matrix[r][c];
+    finally {
+      if (!errorFlag) {
+        println("Test 2: Success");
+        //n.showMatrix();
+      } else {
+        println("Test 2: Failure");
       }
     }
   }
 
-  Matrix subtractMatrix(Matrix m) {
+  void equalToTest() {
+    println("TESTING EQUALS TO FUNCTION");
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5"), 2, 2);
+      n = new Matrix(new String("4;4;2;5"), 2, 2);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && m.equalTo(n)) {
+        println("Test 1: Success");
+      } else {
+        println("Test 1: Failure");
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5"), 2, 2);
+      n = new Matrix(new String("4;4;2;5;5;2"), 2, 3);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && !m.equalTo(n)) {
+        println("Test 2: Success");
+      } else {
+        println("Test 2: Failure");
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5"), 2, 2);
+      n = new Matrix(new String("4;4;2;6"), 2, 2);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && !m.equalTo(n)) {
+        println("Test 3: Success");
+      } else {
+        println("Test 3: Failure");
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5"), 2, 2);
+      n = new Matrix(new String("5;2;4;4"), 2, 2);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && !m.equalTo(n)) {
+        println("Test 4: Success");
+      } else {
+        println("Test 4: Failure");
+      }
+    }
+  }
+
+  void multiplyMatrixTest() {
+    println("\nTESTING MATRIX MULTIPLICATION");
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5"), 2, 2);
+      n = new Matrix(new String("12;4;6;2"), 2, 2);
+      r = m.multiplyMatrix(n);
+      s = new Matrix(new String("48;16;12;10"), 2, 2);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.equalTo(s)) {
+        println("Test 1: Success");
+      } else {
+        println("Test 1: Failure");
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("1;2;3;4;5;6"), 2, 3);
+      n = new Matrix(new String("6;5;4;3;2;1"), 2, 3);
+      r = m.multiplyMatrix(n);
+      s = new Matrix(new String("6;10;12;12;10;6"), 2, 3);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.equalTo(s)) {
+        println("Test 2: Success");
+      } else {
+        println("Test 2: Failure");
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5;4;2;5;2;4"), 1, 9);
+      n = new Matrix(new String("1;1;1;1;1;1;1;1;1"), 1, 9);
+      r = m.multiplyMatrix(n);
+      s = new Matrix(new String("4;4;2;5;4;2;5;2;4"), 1, 9);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.equalTo(s)) {
+        println("Test 3: Success");
+      } else {
+        println("Test 3: Failure");
+      }
+    }
+  }
+
+  void dotProductTest() {
+    println("\nTESTING DOT PRODUCT");
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5"), 2, 2);
+      n = new Matrix(new String("12;4;6;2"), 2, 2);
+      r = m.dotProduct(n);
+      s = new Matrix(new String("72;24;54;18"), 2, 2);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.equalTo(s)) {
+        println("Test 1: Success");
+      } else {
+        println("Test 1: Failure");
+        r.showMatrix();
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5;1;5;2;5;2;8;12;5;7;18;3"), 3, 5);
+      n = new Matrix(new String("12;4;6;2;2;5;23;7;6;5;34;8;9;1;12"), 5, 3);
+      r = m.dotProduct(n);
+      s = new Matrix(new String("136;209;108;261;135;182;432;722;319"), 3, 3);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.equalTo(s)) {
+        println("Test 2: Success");
+      } else {
+        println("Test 2: Failure");
+        r.showMatrix();
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("1;1;1;1;1;1;1;1;1;1"), 1, 10);
+      n = new Matrix(new String("1;1;1;1;1;1;1;1;1;1"), 10, 1);
+      r = m.dotProduct(n);
+      s = new Matrix(new String("10"), 1, 1);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.equalTo(s)) {
+        println("Test 3: Success");
+      } else {
+        println("Test 3: Failure");
+        r.showMatrix();
+      }
+    }
+  }
+
+  void transposeTest() {
     /*
-      Matrix subtractMatrix(Matrix m) - return the difference b/w the values of m and this matrix
-     Matrix m - matrix object
+      void transpose() - tests the transpose matrix function
      */
-    Matrix result = new Matrix(new float[row][col]);
-    for (int r = 0; r < row; r++) {
-      for (int c = 0; c < col; c++) {
-        result.matrix[r][c] = matrix[r][c] - m.matrix[r][c];
+    println("\nTRANSPOSE TEST");
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("4;4;2;5"), 2, 2);
+      r = m.transpose();
+      s = new Matrix("4;2;4;5", 2, 2);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.equalTo(s)) {
+        println("Test 1: Success");
+      } else {
+        println("Test 1: Failure");
+        r.showMatrix();
       }
     }
-    return result;
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("1;1;1;1;1;1;1;1;1;1"), 1, 10);
+      m.transposeLocal();
+      s = new Matrix(new String("1;1;1;1;1;1;1;1;1;1"), 10, 1);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && m.equalTo(s)) {
+        println("Test 2: Success");
+        //m.showMatrix();
+      } else {
+        println("Test 2: Failure");
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("1"), 1, 1);
+      r = m.transpose();
+      s = new Matrix("1", 1, 1);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.equalTo(s)) {
+        println("Test 3: Success");
+      } else {
+        println("Test 3: Failure");
+        r.showMatrix();
+      }
+    }
   }
 
-  void subtractMatrixLocal(Matrix m) {
+  // NEURAL NETWORK TEST
+
+  void hypTanTest() {
     /*
-      void subtractMatrix(Matrix m) - subtract Matrix m from this matrix
-     Matrix m - matrix object
+      void hypTanTest() - test the hypTan function
      */
-    for (int r = 0; r < row; r++) {
-      for (int c = 0; c < col; c++) {
-        matrix[r][c] -= m.matrix[r][c];
+    println("\nTESTING HYPERBOLIC TANGENT FUNCTION\n");
+    NN = new Neural_Network();
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("0;0;0;0"), 2, 2);
+      r = NN.hypTan(m);
+      s = new Matrix(new String("0;0;0;0"), 2, 2);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.equalTo(s)) {
+        println("Test 1: Success");
+      } else {
+        println("Test 1: Failure");
+        r.showMatrix();
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("5; 2; 1; 7"), 2, 2);
+      r = NN.hypTan(m);
+      s = new Matrix(new String("0.9999092043; 0.9640275801; 0.761594156; 0.9999983369"), 2, 2);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.almostEqualTo(s, 0.0000001)) {
+        println("Test 2: Success");
+      } else {
+        println("Test 2: Failure");
+        r.showMatrix();
+        println(r.relativeError(s));
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("0.25; 0.78; -0.34; -0.56"), 1, 4);
+      r = NN.hypTan(m);
+      s = new Matrix(new String("0.2449186624; 0.652706706; -0.3274773948; -0.5079774329"), 1, 4);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.almostEqualTo(s, 0.0000001)) {
+        println("Test 3: Success");
+      } else {
+        println("Test 3: Failure");
+        r.showMatrix();
+        println(r.relativeError(s));
       }
     }
   }
 
-  Matrix transpose() {
+  void hypTanPrimeTest() {
     /*
-      Matrix transpose - "rotate" the matrix and return the new value
+      void hypTanPrimeTest() - tests the hypTan_Prime function
      */
-    Matrix result = new Matrix(new float[col][row]);
+    println("\nTESTING HYPERBOLIC TANGENT FUNCTION PRIME\n");
+    NN = new Neural_Network();
 
-    for (int c = 0; c < col; c++) {
-      for (int r = 0; r < row; r++) {
-        result.matrix[c][r] = matrix[r][c];
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("0;0;0;0"), 2, 2);
+      r = NN.hypTan_Prime(m);
+      s = new Matrix(new String("1;1;1;1"), 2, 2);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.equalTo(s)) {
+        println("Test 1: Success");
+      } else {
+        println("Test 1: Failure");
+        r.showMatrix();
       }
     }
-    return result;
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("5; 2; 1; 3"), 1, 4);
+      r = NN.hypTan_Prime(m);
+      s = new Matrix(new String("0.0001815832312; 0.07065082485; 0.4199743416; 0.009866037164"), 1, 4);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.almostEqualTo(s, 0.0000001)) {
+        println("Test 2: Success");
+      } else {
+        println("Test 2: Failure");
+        r.showMatrix();
+        println(r.relativeError(s));
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("0.25; 0.78; -0.34; -0.56"), 1, 4);
+      r = NN.hypTan_Prime(m);
+      s = new Matrix(new String("0.9400148488; 0.573973956; 0.8927585559; 0.7419589277"), 1, 4);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.almostEqualTo(s, 0.0000001)) {
+        println("Test 3: Success");
+      } else {
+        println("Test 3: Failure");
+        r.showMatrix();
+        println(r.relativeError(s));
+      }
+    }
   }
 
-  void transposeLocal() {
+  void ReLUTest() {  
     /*
-      void transpose - "rotate" this matrix
+      void ReLUTest() - tests ReLU function
      */
-    float [][] result = new float[col][row];
+    println("\nTESTING RECTIFIED LINEAR UNIT FUNCTION\n");
+    NN = new Neural_Network();
 
-    for (int c = 0; c < col; c++) {
-      for (int r = 0; r < row; r++) {
-        result[c][r] = matrix[r][c];
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("0;0;0;0"), 2, 2);
+      r = NN.ReLU(m);
+      s = new Matrix(new String("0;0;0;0"), 2, 2);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.equalTo(s)) {
+        println("Test 1: Success");
+      } else {
+        println("Test 1: Failure");
+        r.showMatrix();
       }
     }
 
-    matrix = result;
-    row = matrix.length;
-    col = matrix[0].length;
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("5; 2; 1; 3"), 1, 4);
+      r = NN.ReLU(m);
+      s = new Matrix(new String("5; 2; 1; 3"), 1, 4);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.almostEqualTo(s, 0.0000001)) {
+        println("Test 2: Success");
+      } else {
+        println("Test 2: Failure");
+        r.showMatrix();
+        println(r.relativeError(s));
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("0.25; 0.78; -0.34; -0.56"), 1, 4);
+      r = NN.ReLU(m);
+      s = new Matrix(new String("0.25; 0.78; -0.0034; -0.0056"), 1, 4);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.almostEqualTo(s, 0.0000001)) {
+        println("Test 3: Success");
+      } else {
+        println("Test 3: Failure");
+        r.showMatrix();
+        println(r.relativeError(s));
+      }
+    }
   }
 
-  Matrix dotProduct(Matrix m) {
+
+  void ReLUPrimeTest() {
     /*
-      Matrix dotProduct(Matrix m) - return the dot product of m and this
-     Matrix m - matrix object
+      void ReLUPrimeTest() - tests the ReLU_Prime function
      */
-    Matrix result = new Matrix(new float[row][m.col]);
-    for (int r = 0; r < row; r++) {
+    println("\nTESTING RECTIFIED LINEAR UNIT FUNCTION PRIME\n");
+    NN = new Neural_Network();
 
-      // current row of first matrix
-      float [] rowVec = new float[col];
-      rowVec = matrix[r];
-      for (int c = 0; c < m.col; c++) {
+    errorFlag = false;
 
-        // current col of second matrix
-        float [] colVec = new float[m.row];
-        for (int i = 0; i < m.row; i++) {
-          colVec[i] = m.matrix[i][c];
-        }
-
-        // Column multiplication step
-        float data = 0;
-        for (int i = 0; i < colVec.length; i++) {
-          data += rowVec[i] * colVec[i];
-        }
-        result.matrix[r][c] = data;
+    try {
+      m = new Matrix(new String("0;0;0;0"), 2, 2);
+      r = NN.ReLU_Prime(m);
+      s = new Matrix(new String("1;1;1;1"), 2, 2);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.equalTo(s)) {
+        println("Test 1: Success");
+      } else {
+        println("Test 1: Failure");
+        r.showMatrix();
       }
     }
-    return result;
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("5; 2; 1; 3"), 1, 4);
+      r = NN.ReLU_Prime(m);
+      s = new Matrix(new String("1;1;1;1"), 1, 4);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.almostEqualTo(s, 0.0000001)) {
+        println("Test 2: Success");
+      } else {
+        println("Test 2: Failure");
+        r.showMatrix();
+        println(r.relativeError(s));
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("0.25; 0.78; -0.34; -0.56"), 1, 4);
+      r = NN.ReLU_Prime(m);
+      s = new Matrix(new String("1;1;0.01;0.01"), 1, 4);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.almostEqualTo(s, 0.0000001)) {
+        println("Test 3: Success");
+      } else {
+        println("Test 3: Failure");
+        r.showMatrix();
+        println(r.relativeError(s));
+      }
+    }
   }
 
-  boolean equalTo(Matrix m) {
+  void backPropTest() {
     /*
-      boolean equalsTo(Matrix m) - determines if matrices are equal
-    */
-    boolean result = true;
-    if (row == m.row && col == m.col) {
-      for (int i = 0; i < row; i++) {
-        for (int j = 0; j < col; j++) {
-          if (matrix[i][j] != m.matrix[i][j]) {
-            result = false;
-            break;
-          }
-        }
+      void backPropTest() - tests the backpropagation method
+     */
+    NN = new Neural_Network();
+    println("\nTESTING BACKPROPAGATION\n");
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("0;0;0;0;0;0"), 3, 2);
+      n = new Matrix (new String("1;1;1"), 3, 1) ;
+      r = NN.backProp(m, n).get(0);
+      //s = new Matrix(new String("0;0;0"), 1,3);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.almostEqualTo(s, 0.0000001)) {
+        println("Test 1: Success");
+      } else {
+        println("Test 1: Failure");
+        r.showMatrix();
       }
-    } else {
-      result = false;
     }
-    return result;
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("5; 2; 1; 3"), 1, 4);
+      r = NN.hypTan_Prime(m);
+      s = new Matrix(new String("0.0001815832312; 0.07065082485; 0.4199743416; 0.009866037164"), 1, 4);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.almostEqualTo(s, 0.0000001)) {
+        println("Test 2: Success");
+      } else {
+        println("Test 2: Failure");
+        r.showMatrix();
+        println(r.relativeError(s));
+      }
+    }
+
+    errorFlag = false;
+
+    try {
+      m = new Matrix(new String("0.25; 0.78; -0.34; -0.56"), 1, 4);
+      r = NN.hypTan_Prime(m);
+      s = new Matrix(new String("0.9400148488; 0.573973956; 0.8927585559; 0.7419589277"), 1, 4);
+    } 
+    catch(java.lang.RuntimeException e) {
+      e.printStackTrace();
+      errorFlag = true;
+    }
+    finally {
+      if (!errorFlag && r.almostEqualTo(s, 0.0000001)) {
+        println("Test 3: Success");
+      } else {
+        println("Test 3: Failure");
+        r.showMatrix();
+        println(r.relativeError(s));
+      }
+    }
   }
-  
-  boolean almostEqualTo(Matrix m, float tolerance){
-    /*
-      boolean almostEqualTo(Matrix m, float tolerance) - determines if matrices are similar
-    */
-    boolean result= false;
-    float rError = relativeError(m);
-    if (rError < tolerance){
-      result = true;
-    }
-    return result;
+
+  void test() {
+    println("Beginning Unit Test: \n");
+    println("MATRIX TESTS\n");
+    instantiateMatrix();
+    equalToTest();
+    multiplyScalarTest();
+    multiplyMatrixTest();
+    dotProductTest();
+    transposeTest();
+    println("\nNEURAL NETWORK TESTS");
+    hypTanTest();
+    hypTanPrimeTest();
+    ReLUTest();
+    ReLUPrimeTest();
+    //backPropTest();
   }
 }
