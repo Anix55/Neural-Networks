@@ -16,17 +16,19 @@ class Neural_Network {
   Matrix [] biases; // stores all baises
   float [] displaySize; // controls display size of the NN
   float [][][] nodePos; // stores positions of nodes on screen
-  float nodeSize;
+  float nodeSize, weightDecay, learningRate;
   int inputLayerSize, hiddenLayerSize, outputLayerSize, numHiddenLayers, numExamples, MAX;
   float [] visWeights; // used to visualize weights
   Neural_Network() {
 
     //Define HyperParameters
-    inputLayerSize = 5;
+    inputLayerSize = 2;
     hiddenLayerSize = 3;
-    outputLayerSize= 2;
+    outputLayerSize= 1;
     numHiddenLayers = 1;
-    numExamples = 1;
+    numExamples = 3;
+    weightDecay = 0;
+    learningRate = 0.7;
 
     // Set lenghts of array matrix containers
     weights = new Matrix[numHiddenLayers+1];
@@ -41,10 +43,8 @@ class Neural_Network {
 
 
     /*
-      INTIALIZE WEIGHTS OF NEURAL NETWORK USING CHROMOSOME
      Weights are matrix that are multiplied by activity of prev layer to get activity of next layer
      Dimension of Weights -> inputLayerSize * hiddenLayerSize or hiddenLayerSize^2 or hiddenLayerSize * outputLayerSize
-     Biases are matrices that are added to activity
      Dimensions of Biases -> numExamples * hiddenLayerSize or numExamples * outputLayerSize
      */
 
@@ -158,8 +158,6 @@ class Neural_Network {
       bias_iter++;
     }
 
-
-
     /*
       INITIALIZING NEURAL NETWORK VISUALIZATION VALUES
      */
@@ -209,86 +207,92 @@ class Neural_Network {
       }
     }
   }
-  float[][] logistic(float[][] z) {
+  Matrix logistic(Matrix z) {
     /*
       float [][] logistic(float[][] z) - Applies logistic sigmoid function
      float [][] z - matrix values
      */
-    for (int i = 0; i < z.length; i++) {
-      for (int j = 0; j < z[0].length; j++) {
-        z[i][j] = 1/(1+exp(-1*z[i][j]));
+    for (int i = 0; i < z.matrix.length; i++) {
+      for (int j = 0; j < z.matrix[0].length; j++) {
+        z.matrix[i][j] = 1/(1+exp(-1*z.matrix[i][j]));
       }
     }
     return z;
   }
 
-  float[][] logistic_Prime(float[][] z) {
+  Matrix logistic_Prime(Matrix z) {
     /*
       float [][] logistic_Prime(float[][] z) - Applies the derivative of logistic sigmoid function
      float [][] z - matrix values
      */
-    for (int i = 0; i < z.length; i++) {
-      for (int j = 0; j < z[0].length; j++) {
-        z[i][j] = 1 - (1/(1+exp(-1*z[i][j])));
+    for (int i = 0; i < z.matrix.length; i++) {
+      for (int j = 0; j < z.matrix[0].length; j++) {
+        z.matrix[i][j] = 1 - (1/(1+exp(-1*z.matrix[i][j])));
       }
     }
     return z;
   }
 
-  float[][] hypTan(float[][] z) {
+  Matrix hypTan(Matrix z) {
     /*
       float [][] hypTan(float[][] z) - Applies hyperbolic tangent sigmoid activation funtion
      float [][] z - matrix values
      */
-    for (int i = 0; i < z.length; i++) {
-      for (int j = 0; j < z[0].length; j++) {
-        z[i][j] = ( exp(z[i][i]) - exp(-1*z[i][j]) )/( exp(z[i][j]) + exp(-1*z[i][j]) );
+    for (int i = 0; i < z.matrix.length; i++) {
+      for (int j = 0; j < z.matrix[0].length; j++) {
+        float x = z.matrix[i][j];
+        z.matrix[i][j] = ( exp(x) - exp(-x) )/( exp(x) + exp(-x) );
       }
     }
     return z;
   }
 
-  float[][] hypTan_Prime(float[][] z) {
+  Matrix hypTan_Prime(Matrix z) {
     /*
       float [][] hypTan_Prime(float[][] z) - Applies the derivative of thhe hyperbolic tangent sigmoid activation funtion
      float [][] z - matrix values
      */
-    for (int i = 0; i < z.length; i++) {
-      for (int j = 0; j < z[0].length; j++) {
-        z[i][j] = ( exp(z[i][i]) - exp(-1*z[i][j]) )/( exp(z[i][j]) + exp(-1*z[i][j]) );
-      }
-    }
-    return z;
-  }
-
-  float[][] PReLU(float[][] z) {
-    /*
-      float [][] ReLU(float[][] z) - Applies the rectified linear unit activation funtion
-     float [][] z - matrix values
-     */
-    for (int i = 0; i < z.length; i++) {
-      for (int j = 0; j < z[0].length; j++) {
-        if (z[i][j] < 0) {
-          z[i][j] = 0.01*(z[i][j]);
+    for (int i = 0; i < z.matrix.length; i++) {
+      for (int j = 0; j < z.matrix[0].length; j++) {
+        float x = z.matrix[i][j];
+        if (x == 0) {
+          z.matrix[i][j] = 1;
         } else {
-          z[i][j] = z[i][j];
+          z.matrix[i][j] = (  pow(2/(exp(x) + exp(-x)), 2) );
         }
       }
     }
     return z;
   }
 
-  float[][] PReLU_Prime(float[][] z) {
+  Matrix ReLU(Matrix z) {
+    /*
+      float [][] ReLU(float[][] z) - Applies the rectified linear unit activation funtion
+     float [][] z - matrix values
+     */
+    for (int i = 0; i < z.matrix.length; i++) {
+      for (int j = 0; j < z.matrix[0].length; j++) {
+        if (z.matrix[i][j] < 0) {
+          z.matrix[i][j] = 0.01*(z.matrix[i][j]);
+        } else {
+          z.matrix[i][j] = z.matrix[i][j];
+        }
+      }
+    }
+    return z;
+  }
+
+  Matrix ReLU_Prime(Matrix z) {
     /*
       float [][] ReLU_Prime(float[][] z) - Applies the derivative of the rectified linear unit activation funtion
      float [][] z - matrix values
      */
-    for (int i = 0; i < z.length; i++) {
-      for (int j = 0; j < z[0].length; j++) {
-        if (z[i][j] < 0) {
-          z[i][j] = 0.01;
+    for (int i = 0; i < z.matrix.length; i++) {
+      for (int j = 0; j < z.matrix[0].length; j++) {
+        if (z.matrix[i][j] < 0) {
+          z.matrix[i][j] = 0.01;
         } else {
-          z[i][j] = 1;
+          z.matrix[i][j] = 1;
         }
       }
     }
@@ -302,46 +306,70 @@ class Neural_Network {
      */
 
     x = new Matrix(x_); // stores values in Matrix object to get functionality
-    Matrix t_dot;
 
     if (numHiddenLayers == 0) { 
       // Propagate inputs to output layer
-
-      t_dot = new Matrix(x.dotProduct(weights[0]));
-      z[0] = new Matrix(t_dot.addMatrix(biases[0]));
-      a[0] = new Matrix(hypTan(z[0].matrix));
+      z[0] = x.dotProduct(weights[0]).addMatrix(biases[0]);
+      a[0] = ReLU(z[0]);
     } else {
       // Propagate inputs to first hidden layer
-
-      t_dot = new Matrix(x.dotProduct(weights[0]));
-      z[0] = new Matrix(t_dot.addMatrix(biases[0]));
-      a[0] = new Matrix(hypTan(z[0].matrix));
-
-      // Propagate inputs through hidden layers
-
+      z[0] = x.dotProduct(weights[0]).addMatrix(biases[0]);
+      a[0] = ReLU(z[0]);
       for (int i = 1; i < numHiddenLayers; i++) {
-        t_dot = new Matrix(a[i-1].dotProduct(weights[i]));
-        z[i] = new Matrix(t_dot.addMatrix(biases[i]));
-        a[i] = new Matrix(hypTan(z[i].matrix));
+        // Propagate inputs through hidden layers
+        z[i] = a[i-1].dotProduct(weights[i]).addMatrix(biases[i]);
+        a[i] = ReLU(z[i]);
       }
       // Propagate inputs from last hidden layer to output layer
-
-      t_dot = new Matrix(a[a.length-2].dotProduct(weights[weights.length - 1]));
-      z[z.length - 1] = new Matrix(t_dot.addMatrix(biases[biases.length - 1]));
-      a[a.length - 1] = new Matrix(hypTan(z[z.length - 1].matrix));
+      z[z.length - 1] = a[a.length-2].dotProduct(weights[weights.length - 1]).addMatrix(biases[biases.length - 1]);
+      a[a.length - 1] = ReLU(z[z.length - 1]);
     } 
     yHat = new Matrix( a[a.length - 1].matrix );
   }
 
-  Matrix[] backProp(Matrix X, Matrix y) {
+  ArrayList<Matrix> backProp(Matrix X, Matrix y) {
     /*
       void backProp(Matrix X, MatrixY) - used to train Neural Network
      Determines the contribution of each weight towards the error
      */
-    // IN PROGRESS
-    Matrix [] dJdW = new Matrix[numHiddenLayers+1]; // stores matrices of each dJdW value
-    Matrix[] delta = new Matrix[numHiddenLayers+1]; // stores matrices of each backpropagating error
+    ArrayList <Matrix> dJdW = new ArrayList(); // stores matrices of each dJdW value
+    ArrayList <Matrix> delta = new ArrayList(); // stores matrices of each backpropagating error
+    forward(X.matrix);
+
+    // Quantifying Error
+    println(y.relativeError(yHat));
+
+    // Compute derivative wrt to W
+    delta.add(0, y.subtractMatrix(yHat).multiplyScalar(-1).multiplyMatrix(ReLU_Prime(z[z.length-1])));
+    dJdW.add(0, a[a.length-2].transpose().dotProduct(delta.get(0)));
+
+    for (int i = weights.length-1; i > 1; i--) {
+      // Iterate from self.weights[-1] -> self.weights[1]
+      delta.add(0, delta.get(0).dotProduct(weights[i].transpose()).multiplyMatrix(ReLU_Prime(z[i-1])));
+      dJdW.add(0, a[i-2].transpose().dotProduct(delta.get(0)).addMatrix(weights[i-1].multiplyScalar(weightDecay)));
+    }
+
+    delta.add(0, delta.get(0).dotProduct(weights[1].transpose()).multiplyMatrix(ReLU_Prime(z[0])));
+    dJdW.add(0, X.transpose().dotProduct(delta.get(0)).addMatrix(weights[0].multiplyScalar(weightDecay)));
+
     return dJdW;
+  }
+
+  float error(Matrix a, Matrix b) {
+    /*
+      float error(Matrix a, Matrix b): quantifies error between a and b
+     */
+    // Quantifying Error
+    Matrix t = a.subtractMatrix(b);
+    t.multiplyMatrixLocal(t);
+    Matrix J = t.multiplyScalar(0.5);
+    float [][] sumMatrix = new float[1][ numExamples];
+    for (int j = 0; j < sumMatrix[0].length; j++) {
+      sumMatrix[0][j] = 1;
+    }
+    J.transposeLocal();
+    float result = J.dotProduct(new Matrix(sumMatrix)).matrix[0][0];
+    return result;
   }
 
   void train(Matrix X, Matrix y) {
@@ -350,13 +378,13 @@ class Neural_Network {
      Matrix X - inputs for feed forward
      Matrix y - correct answers
      */
-     Matrix [] dJdW = new Matrix[numHiddenLayers+1];
-     for (int t = 0; t < 60000; t++){
-       dJdW = backProp(X, y);
-       for (int i = 0; i < dJdW.length; i++){
-         weights[i].subtractMatrixLocal(dJdW[i]);
-       }
-     }
+    ArrayList<Matrix> dJdW;
+    for (int t = 0; t < 600000; t++) {
+      dJdW = backProp(X, y);
+      for (int i = 0; i < dJdW.size(); i++) {
+        weights[i].subtractMatrixLocal(dJdW.get(i).multiplyScalar(learningRate));
+      }
+    }
   }
 
   void initNN() {
