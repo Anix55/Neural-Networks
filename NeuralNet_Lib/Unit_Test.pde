@@ -1,403 +1,338 @@
-//<>// //<>// //<>//
-class UnitTest {
-  boolean errorFlag;
-  Matrix m;
-  Matrix n;
-  Matrix r;
-  Matrix s;
-  UnitTest() {
+/* Matrix Module
+ Methods: setElem(), getElem(), showMatrix(), copyMatrix(), addMatrix(), subtractMatrix(), transpose(), multiplyScalar(), dotProduct(), equalTo(), almostEqualTo, relativeError()
+ 
+ */
+class Matrix {
+  // Variables to keep track of
+  int row;
+  int col;
+  float [][] matrix;
+
+  Matrix(float [][] m) {
+    /*
+      Matrix(float[][]m) - Matrix constructor
+     float[][] m - values
+     */
+    matrix = m;
+    row = m.length;
+    col = m[0].length;
   }
 
-  // MATRIX TESTING
-
-  void instantiateMatrix() {
-    println("TESTING CONSTRUCTOR");
-    errorFlag = false;
-
-    try {
-      m = new Matrix(new String("4;4;2;5"), 2, 2);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag) {
-        println("Test 1: Success");
-        m.showMatrix();
-      } else {
-        println("Test 1: Failure");
+  Matrix(String elemStr, int row_, int col_) {
+    /*
+      Matrix(String m, int row_, int col_) - Matrix constructor (Overloaded)
+     String m - values
+     int row_, col_: dimensionality of matrix
+     */
+    row = row_;
+    col = col_;
+    matrix = new float[row][col];
+    String [] elems = split(elemStr, ';');
+    int iter = 0;
+    if (elems.length == row * col) {
+      for (int i  = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+          matrix[i][j] = float(elems[iter]);
+          iter++;
+        }
       }
-    }
-
-    errorFlag = false;
-
-    try {
-      m = new Matrix(new String("4;4;2;5;4;5;6;2;7;3"), 5, 2);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag) {
-        println("Test 2: Success");
-        m.showMatrix();
-      } else {
-        println("Test 2: Failure");
-      }
-    }
-
-    boolean errorFlag = false;
-
-    try {
-      m = new Matrix(new String("4;4;2;5;5"), 1, 5);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag) {
-        println("Test 3: Success");
-        m.showMatrix();
-      } else {
-        println("Test 3: Failure");
-      }
-    }
-
-
-    errorFlag = false;
-
-    try {
-      m = new Matrix(new String("4;4;2;5;5;3;26;4;5;2;6;3;6;2;6;5;42;4;23;4"), 4, 5);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag) {
-        println("Test 4: Success");
-        m.showMatrix();
-      } else {
-        println("Test 4: Failure");
-      }
+    } else {
+      println("ERROR: dimensionality error");
     }
   }
-  void multiplyScalarTest() {
-    println("\nTESTING SCALAR MULTIPLICATION");
-    errorFlag = false;
 
-    try {
-      m = new Matrix(new String("4;4;2;5"), 2, 2);
-      m.multiplyScalarLocal(0.01);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag) {
-        println("Test 1: Success");
-        //m.showMatrix();
-      } else {
-        println("Test 1: Failure");
+  Matrix multiplyScalar(float scalar) {
+    /*
+      Matrix multiplyScalar(float scalar) - return scaled version of this matrix
+     float scalar - scalar value
+     */
+    Matrix result = new Matrix(new float [row][col]);
+    for (int i = 0; i < row; i++) {
+      for (int j = 0; j < col; j++) {
+        result.matrix[i][j] = matrix[i][j] * scalar;
       }
     }
+    return result;
+  }
 
-
-    errorFlag = false;
-
-    try {
-      m = new Matrix(new String("4;4;2;5;43;5;3;53;3"), 3, 3);
-      n = m.multiplyScalar(10);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag) {
-        println("Test 2: Success");
-        //n.showMatrix();
-      } else {
-        println("Test 2: Failure");
+  void multiplyScalarLocal(float scalar) {
+    /*
+      Matrix multiplyScalar(float scalar) - multiply this matrix  by a scalar
+     float scalar - scalar value
+     */
+    for (int i = 0; i < row; i++) {
+      for (int j = 0; j < col; j++) {
+        matrix[i][j] = matrix[i][j] * scalar;
       }
     }
   }
 
-  void equalsToTest() {
-    println("TESTING EQUALS TO FUNCTION");
-    errorFlag = false;
-
-    try {
-      m = new Matrix(new String("4;4;2;5"), 2, 2);
-      n = new Matrix(new String("4;4;2;5"), 2, 2);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag && m.equalsTo(n)) {
-        println("Test 1: Success");
-      } else {
-        println("Test 1: Failure");
+  Matrix multiplyMatrix(Matrix m) {
+    /*
+      Matrix multiple(Matrix m) - return a matrix of the product of two matrix of same dim
+     */
+    Matrix result = new Matrix(new float[row][col]);
+    for (int i = 0; i < row; i++) {
+      for (int j = 0; j < col; j++) {
+        result.matrix[i][j] = matrix[i][j] * m.matrix[i][j];
       }
     }
+    return result;
+  }
 
-    try {
-      m = new Matrix(new String("4;4;2;5"), 2, 2);
-      n = new Matrix(new String("4;4;2;5;5;2"), 2, 3);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag && !m.equalsTo(n)) {
-        println("Test 2: Success");
-      } else {
-        println("Test 2: Failure");
-      }
-    }
-
-    try {
-      m = new Matrix(new String("4;4;2;5"), 2, 2);
-      n = new Matrix(new String("4;4;2;6"), 2, 2);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag && !m.equalsTo(n)) {
-        println("Test 3: Success");
-      } else {
-        println("Test 3: Failure");
-      }
-    }
-
-    try {
-      m = new Matrix(new String("4;4;2;5"), 2, 2);
-      n = new Matrix(new String("5;2;4;4"), 2, 2);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag && !m.equalsTo(n)) {
-        println("Test 4: Success");
-      } else {
-        println("Test 4: Failure");
+  void multiplyMatrixLocal(Matrix m) {
+    /*
+      Matrix multiple(Matrix m) - compute the product of two matrix of same dim
+     */
+    for (int i = 0; i < row; i++) {
+      for (int j = 0; j < col; j++) {
+        matrix[i][j] *= m.matrix[i][j];
       }
     }
   }
 
-  void multiplyMatrixTest() {
-    println("\nTESTING MATRIX MULTIPLICATION");
-    errorFlag = false;
-
-    try {
-      m = new Matrix(new String("4;4;2;5"), 2, 2);
-      n = new Matrix(new String("12;4;6;2"), 2, 2);
-      r = m.multiplyMatrix(n);
-      s = new Matrix(new String("48;16;12;10"), 2, 2);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag && r.equalsTo(s)) {
-        println("Test 1: Success");
-      } else {
-        println("Test 1: Failure");
+  void deleteLocal(int index, int axis) {
+    /*
+      void delete(int index, int axis) - deletes entire rows or columns
+     int axis - 0: row, 1: column
+     int index - index of row/column to delete
+     */
+    if (axis == 0) {
+      // Delete specified row
+      row -= 1;
+      float[][] t = new float[row][col];
+      for (int i = 0, i_ = 0; i < row+1; i++) {
+        if (i != index) {
+          t[i_] = matrix[i];
+          i_++;
+        }
       }
-    }
-
-    errorFlag = false;
-
-    try {
-      m = new Matrix(new String("1;2;3;4;5;6"), 2, 3);
-      n = new Matrix(new String("6;5;4;3;2;1"), 2, 3);
-      r = m.multiplyMatrix(n);
-      s = new Matrix(new String("6;10;12;12;10;6"), 2, 3);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag && r.equalsTo(s)) {
-        println("Test 2: Success");
-      } else {
-        println("Test 2: Failure");
+      matrix = t;
+    } else {
+      // Delete specified column
+      col -= 1;
+      float[][] t = new float[row][col];
+      for (int i = 0; i < row; i++) {
+        for (int j = 0, j_ = 0; j < col+1; j++) {
+          if (j != index) {
+            t[i][j_] = matrix[i][j];
+            j_++;
+          }
+        }
       }
-    }
-
-    errorFlag = false;
-
-    try {
-      m = new Matrix(new String("4;4;2;5;4;2;5;2;4"), 1, 9);
-      n = new Matrix(new String("1;1;1;1;1;1;1;1;1"), 1, 9);
-      r = m.multiplyMatrix(n);
-      s = new Matrix(new String("4;4;2;5;4;2;5;2;4"), 1, 9);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag && r.equalsTo(s)) {
-        println("Test 3: Success");
-      } else {
-        println("Test 3: Failure");
-      }
+      matrix = t;
     }
   }
 
-  void dotProductTest() {
-    println("\nTESTING DOT PRODUCT");
-    errorFlag = false;
+  void setElem(int r, int c, float x) {
+    /*
+      void setElem(int r, int c, float x) - change an element with the matric
+     int r, c - position in the matrix
+     flaot x - new value
+     */
 
-    try {
-      m = new Matrix(new String("4;4;2;5"), 2, 2);
-      n = new Matrix(new String("12;4;6;2"), 2, 2);
-      r = m.dotProduct(n);
-      s = new Matrix(new String("72;24;54;18"), 2, 2);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag && r.equalsTo(s)) {
-        println("Test 1: Success");
-      } else {
-        println("Test 1: Failure");
-        r.showMatrix();
-      }
-    }
-
-    errorFlag = false;
-
-    try {
-      m = new Matrix(new String("4;4;2;5;1;5;2;5;2;8;12;5;7;18;3"), 3, 5);
-      n = new Matrix(new String("12;4;6;2;2;5;23;7;6;5;34;8;9;1;12"), 5, 3);
-      r = m.dotProduct(n);
-      s = new Matrix(new String("136;209;108;261;135;182;432;722;319"), 3, 3);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag && r.equalsTo(s)) {
-        println("Test 2: Success");
-      } else {
-        println("Test 2: Failure");
-        r.showMatrix();
-      }
-    }
-
-    errorFlag = false;
-
-    try {
-      m = new Matrix(new String("1;1;1;1;1;1;1;1;1;1"), 1, 10);
-      n = new Matrix(new String("1;1;1;1;1;1;1;1;1;1"), 10, 1);
-      r = m.dotProduct(n);
-      s = new Matrix(new String("10"), 1, 1);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag && r.equalsTo(s)) {
-        println("Test 3: Success");
-      } else {
-        println("Test 3: Failure");
-        r.showMatrix();
-      }
-    }
+    matrix[r][c] = x;
   }
 
-  void transposeTest() {
-    println("\nTRANSPOSE TEST");
+  float getElem(int r, int c) {
+    /*
+      float getElem(int r, int c) - return specific element
+     int r, c- position in thematrix
+     */
+    return matrix[r][c];
+  }
 
-    errorFlag = false;
-
-    try {
-      m = new Matrix(new String("4;4;2;5"), 2, 2);
-      r = m.transpose();
-      s = new Matrix("4;2;4;5", 2, 2);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag && r.equalsTo(s)) {
-        println("Test 1: Success");
-      } else {
-        println("Test 1: Failure");
-        r.showMatrix();
+  void showMatrix() {
+    /*
+      void showMatrix() - prints the matrix to the console
+     */
+    String buff = new String();
+    for (int r = 0; r < row; r++) {
+      buff = "";
+      for (int c = 0; c < col; c++) {
+        buff = buff + str(matrix[r][c]) + " ";
       }
+      println(buff);
     }
-
-    errorFlag = false;
-
-    try {
-      m = new Matrix(new String("1;1;1;1;1;1;1;1;1;1"), 1, 10);
-      m.transposeLocal();
-      s = new Matrix(new String("1;1;1;1;1;1;1;1;1;1"), 10, 1);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag && m.equalsTo(s)) {
-        println("Test 2: Success");
-        //m.showMatrix();
-      } else {
-        println("Test 2: Failure");
-      }
-    }
-
-    errorFlag = false;
-
-    try {
-      m = new Matrix(new String("1"), 1, 1);
-      r = m.transpose();
-      s = new Matrix("1", 1, 1);
-    } 
-    catch(java.lang.RuntimeException e) {
-      e.printStackTrace();
-      errorFlag = true;
-    }
-    finally {
-      if (!errorFlag && r.equalsTo(s)) {
-        println("Test 3: Success");
-      } else {
-        println("Test 3: Failure");
-        r.showMatrix();
-      }
-    }
+    println("\n");
   }
   
-  // NEURAL NETWORK TEST
+  float matrixNorm(){
+    /*
+      float matrixNorm() - returns norm of the matrix
+    */
+    float result = 0;
+    for (int i  = 0; i < row; i++){
+      for (int j = 0; j < col; j++){
+        result += pow(matrix[i][j], 2);
+      }
+    }
+    result = sqrt(result);
+    return result;
+  }
+  float relativeError(Matrix m){
+    /*
+      float relativeError(Matrix m): quantifies error between a and b
+    */
 
-  void test() {
-    println("Beginning Unit Test: \n");
-    instantiateMatrix();
-    equalsToTest();
-    multiplyScalarTest();
-    multiplyMatrixTest();
-    dotProductTest();
-    transposeTest();
+    float normDiff = subtractMatrix(m).matrixNorm();
+    float normSum = addMatrix(m).matrixNorm();
+    float result = normDiff / normSum;
+    return result;
+  }
+  
+  void copyMatrix(Matrix m) {
+    /*
+      void copyMatrix(matrix m) - copy the values from m into this matrix
+     Matrix m - matrix object
+     */
+    row = m.row;
+    col = m.col;
+    matrix = m.matrix;
+  }
+
+  Matrix addMatrix(Matrix m) {
+    /*
+      Matrix addMatrix(Matrix m) - return the sum of the values of m and this matrix
+     Matrix m - matrix object
+     */
+    Matrix result = new Matrix(new float[row][col]);
+    for (int r = 0; r < row; r++) {
+      for (int c = 0; c < col; c++) {
+        result.matrix[r][c] = matrix[r][c] + m.matrix[r][c];
+      }
+    }
+    return result;
+  }
+
+  void addMatrixLocal(Matrix m) {
+    /*
+      Matrix addMatrix(Matrix m) - return the sum of the values of m and this matrix
+     Matrix m - matrix object
+     */
+    for (int r = 0; r < row; r++) {
+      for (int c = 0; c < col; c++) {
+        matrix[r][c] += m.matrix[r][c];
+      }
+    }
+  }
+
+  Matrix subtractMatrix(Matrix m) {
+    /*
+      Matrix subtractMatrix(Matrix m) - return the difference b/w the values of m and this matrix
+     Matrix m - matrix object
+     */
+    Matrix result = new Matrix(new float[row][col]);
+    for (int r = 0; r < row; r++) {
+      for (int c = 0; c < col; c++) {
+        result.matrix[r][c] = matrix[r][c] - m.matrix[r][c];
+      }
+    }
+    return result;
+  }
+
+  void subtractMatrixLocal(Matrix m) {
+    /*
+      void subtractMatrix(Matrix m) - subtract Matrix m from this matrix
+     Matrix m - matrix object
+     */
+    for (int r = 0; r < row; r++) {
+      for (int c = 0; c < col; c++) {
+        matrix[r][c] -= m.matrix[r][c];
+      }
+    }
+  }
+
+  Matrix transpose() {
+    /*
+      Matrix transpose - "rotate" the matrix and return the new value
+     */
+    Matrix result = new Matrix(new float[col][row]);
+
+    for (int c = 0; c < col; c++) {
+      for (int r = 0; r < row; r++) {
+        result.matrix[c][r] = matrix[r][c];
+      }
+    }
+    return result;
+  }
+
+  void transposeLocal() {
+    /*
+      void transpose - "rotate" this matrix
+     */
+    float [][] result = new float[col][row];
+
+    for (int c = 0; c < col; c++) {
+      for (int r = 0; r < row; r++) {
+        result[c][r] = matrix[r][c];
+      }
+    }
+
+    matrix = result;
+    row = matrix.length;
+    col = matrix[0].length;
+  }
+
+  Matrix dotProduct(Matrix m) {
+    /*
+      Matrix dotProduct(Matrix m) - return the dot product of m and this
+     Matrix m - matrix object
+     */
+    Matrix result = new Matrix(new float[row][m.col]);
+    for (int r = 0; r < row; r++) {
+
+      // current row of first matrix
+      float [] rowVec = new float[col];
+      rowVec = matrix[r];
+      for (int c = 0; c < m.col; c++) {
+
+        // current col of second matrix
+        float [] colVec = new float[m.row];
+        for (int i = 0; i < m.row; i++) {
+          colVec[i] = m.matrix[i][c];
+        }
+
+        // Column multiplication step
+        float data = 0;
+        for (int i = 0; i < colVec.length; i++) {
+          data += rowVec[i] * colVec[i];
+        }
+        result.matrix[r][c] = data;
+      }
+    }
+    return result;
+  }
+
+  boolean equalTo(Matrix m) {
+    /*
+      boolean equalsTo(Matrix m) - determines if matrices are equal
+    */
+    boolean result = true;
+    if (row == m.row && col == m.col) {
+      for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+          if (matrix[i][j] != m.matrix[i][j]) {
+            result = false;
+            break;
+          }
+        }
+      }
+    } else {
+      result = false;
+    }
+    return result;
+  }
+  
+  boolean almostEqualTo(Matrix m, float tolerance){
+    /*
+      boolean almostEqualTo(Matrix m, float tolerance) - determines if matrices are similar
+    */
+    boolean result= false;
+    float rError = relativeError(m);
+    if (rError < tolerance){
+      result = true;
+    }
+    return result;
   }
 }
