@@ -242,27 +242,27 @@ class Neuro_Evolution {
     if (numHiddenLayers == 0) { 
       // Propagate inputs to output layer
 
-      t_dot = new Matrix(x.dotProduct(weights[0]));
-      z[0] = new Matrix(t_dot.addMatrix(biases[0]));
+      t_dot = x.dotProduct(weights[0]);
+      z[0] = t_dot.addMatrix(biases[0]);
       a[0] = new Matrix(hyp_tan(z[0].matrix));
     } else {
       // Propagate inputs to first hidden layer
 
-      t_dot = new Matrix(x.dotProduct(weights[0]));
-      z[0] = new Matrix(t_dot.addMatrix(biases[0]));
+      t_dot = x.dotProduct(weights[0]);
+      z[0] = t_dot.addMatrix(biases[0]);
       a[0] = new Matrix(hyp_tan(z[0].matrix));
 
       // Propagate inputs through hidden layers
 
       for (int i = 1; i < numHiddenLayers; i++) {
-        t_dot = new Matrix(a[i-1].dotProduct(weights[i]));
-        z[i] = new Matrix(t_dot.addMatrix(biases[i]));
+        t_dot = a[i-1].dotProduct(weights[i]);
+        z[i] = t_dot.addMatrix(biases[i]);
         a[i] = new Matrix(hyp_tan(z[i].matrix));
       }
       // Propagate inputs from last hidden layer to output layer
 
-      t_dot = new Matrix(a[a.length-2].dotProduct(weights[weights.length - 1]));
-      z[z.length - 1] = new Matrix(t_dot.addMatrix(biases[biases.length - 1]));
+      t_dot = a[a.length-2].dotProduct(weights[weights.length - 1]);
+      z[z.length - 1] = t_dot.addMatrix(biases[biases.length - 1]);
       a[a.length - 1] = new Matrix(hyp_tan(z[z.length - 1].matrix));
     } 
     yHat = new Matrix( a[a.length - 1].matrix );
