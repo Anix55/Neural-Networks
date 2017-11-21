@@ -1,5 +1,5 @@
 /* Matrix Module
- Methods: setElem(), getElem(), showMatrix(), copyMatrix(), addMatrix(), subtractMatrix(), transpose(), multiplyScalar(), dotProduct(), equalsTo()
+ Methods: setElem(), getElem(), showMatrix(), copyMatrix(), addMatrix(), subtractMatrix(), transpose(), multiplyScalar(), dotProduct(), equalTo(), almostEqualTo, relativeError()
  
  */
 class Matrix {
@@ -54,7 +54,7 @@ class Matrix {
     }
     return result;
   }
-  
+
   void multiplyScalarLocal(float scalar) {
     /*
       Matrix multiplyScalar(float scalar) - multiply this matrix  by a scalar
@@ -154,9 +154,33 @@ class Matrix {
       }
       println(buff);
     }
-    println("\n");
+    print("\n");
   }
+  
+  float matrixNorm(){
+    /*
+      float matrixNorm() - returns norm of the matrix
+    */
+    float result = 0;
+    for (int i  = 0; i < row; i++){
+      for (int j = 0; j < col; j++){
+        result += pow(matrix[i][j], 2);
+      }
+    }
+    result = sqrt(result);
+    return result;
+  }
+  float relativeError(Matrix m){
+    /*
+      float relativeError(Matrix m): quantifies error between a and b
+    */
 
+    float normDiff = subtractMatrix(m).matrixNorm();
+    float normSum = addMatrix(m).matrixNorm();
+    float result = normDiff / normSum;
+    return result;
+  }
+  
   void copyMatrix(Matrix m) {
     /*
       void copyMatrix(matrix m) - copy the values from m into this matrix
@@ -164,7 +188,13 @@ class Matrix {
      */
     row = m.row;
     col = m.col;
-    matrix = m.matrix;
+    // Avoid referencing
+    matrix = new float [row][col];
+    for (int i = 0; i < row; i++){
+      for (int j = 0; j < col; j++){
+        matrix[i][j] = m.matrix[i][j];
+      }
+    }
   }
 
   Matrix addMatrix(Matrix m) {
@@ -175,10 +205,22 @@ class Matrix {
     Matrix result = new Matrix(new float[row][col]);
     for (int r = 0; r < row; r++) {
       for (int c = 0; c < col; c++) {
-        result.matrix[r][c] = matrix[r][c] + m.matrix[r][c];
+        result.matrix[r][c] = matrix[r][c] + m.matrix[r][c]; //error
       }
     }
     return result;
+  }
+
+  void addMatrixLocal(Matrix m) {
+    /*
+      Matrix addMatrix(Matrix m) - return the sum of the values of m and this matrix
+     Matrix m - matrix object
+     */
+    for (int r = 0; r < row; r++) {
+      for (int c = 0; c < col; c++) {
+        matrix[r][c] += m.matrix[r][c];
+      }
+    }
   }
 
   Matrix subtractMatrix(Matrix m) {
@@ -267,22 +309,36 @@ class Matrix {
     }
     return result;
   }
-  
-  boolean equalsTo(Matrix m){
+
+  boolean equalTo(Matrix m) {
+    /*
+      boolean equalsTo(Matrix m) - determines if matrices are equal
+    */
     boolean result = true;
-    if (row == m.row && col == m.col){
-      for (int i = 0; i < row; i++){
-        for (int j = 0; j < col; j++){
-          if (matrix[i][j] != m.matrix[i][j]){
+    if (row == m.row && col == m.col) {
+      for (int i = 0; i < row; i++) {
+        for (int j = 0; j < col; j++) {
+          if (matrix[i][j] != m.matrix[i][j]) {
             result = false;
             break;
           }
         }
       }
-    }else{
+    } else {
       result = false;
     }
     return result;
   }
   
+  boolean almostEqualTo(Matrix m, float tolerance){
+    /*
+      boolean almostEqualTo(Matrix m, float tolerance) - determines if matrices are similar
+    */
+    boolean result= false;
+    float rError = relativeError(m);
+    if (rError < tolerance){
+      result = true;
+    }
+    return result;
+  }
 }
