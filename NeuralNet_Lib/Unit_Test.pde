@@ -1,4 +1,4 @@
-//<>// //<>//
+
 class UnitTest {
   boolean errorFlag;
   Matrix m;
@@ -407,7 +407,7 @@ class UnitTest {
       void hypTanTest() - test the hypTan function
      */
     println("\nTESTING HYPERBOLIC TANGENT FUNCTION\n");
-    NN = new Neural_Network();
+    NN = new Neural_Network(2, 3, 1, 1, 3);
 
     errorFlag = false;
 
@@ -477,7 +477,7 @@ class UnitTest {
       void hypTanPrimeTest() - tests the hypTan_Prime function
      */
     println("\nTESTING HYPERBOLIC TANGENT FUNCTION PRIME\n");
-    NN = new Neural_Network();
+    NN = new Neural_Network(2, 3, 1, 1, 3);
 
     errorFlag = false;
 
@@ -547,7 +547,7 @@ class UnitTest {
       void ReLUTest() - tests ReLU function
      */
     println("\nTESTING RECTIFIED LINEAR UNIT FUNCTION\n");
-    NN = new Neural_Network();
+    NN = new Neural_Network(2, 3, 1, 1, 3);
 
     errorFlag = false;
 
@@ -618,7 +618,7 @@ class UnitTest {
       void ReLUPrimeTest() - tests the ReLU_Prime function
      */
     println("\nTESTING RECTIFIED LINEAR UNIT FUNCTION PRIME\n");
-    NN = new Neural_Network();
+    NN = new Neural_Network(2, 3, 1, 1, 3);
 
     errorFlag = false;
 
@@ -687,7 +687,7 @@ class UnitTest {
     /*
       void backPropTest() - tests the backpropagation method
      */
-    NN = new Neural_Network();
+    NN = new Neural_Network(1, 0, 1, 0, 3);
     println("\nTESTING BACKPROPAGATION\n");
 
     errorFlag = false;
@@ -695,7 +695,7 @@ class UnitTest {
     try {
       m = new Matrix(new String("0;0;0;0;0;0"), 3, 2);
       n = new Matrix (new String("1;1;1"), 3, 1) ;
-      r = NN.backProp(m, n).get(0);
+      r = NN.backProp(m, n).get(0).get(0);
       //s = new Matrix(new String("0;0;0"), 1,3);
     } 
     catch(java.lang.RuntimeException e) {
