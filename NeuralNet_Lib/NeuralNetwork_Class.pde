@@ -1,4 +1,4 @@
-
+//<>// //<>//
 class Neural_Network {
   /* 
    Neural Network Procedure Overview
@@ -14,25 +14,29 @@ class Neural_Network {
   Matrix [] a; // stores matrices of each layer of activity
   Matrix [] z; // stores each layer of weighted sums
   Matrix [] biases; // stores all baises
+  Matrix [] biasNodes; // used in backpropagation
   float [] displaySize; // controls display size of the NN
   float [][][] nodePos; // stores positions of nodes on screen
   float nodeSize, weightDecay, learningRate;
   int inputLayerSize, hiddenLayerSize, outputLayerSize, numHiddenLayers, numExamples, MAX;
-  float [] visWeights; // used to visualize weights
-  Neural_Network() {
+  float [] visWeights; // used to visualize 
+
+
+  Neural_Network(int inputLayerSize_, int hiddenLayerSize_, int outputLayerSize_, int numHiddenLayers_, int numExamples_ ) {
 
     //Define HyperParameters
-    inputLayerSize = 2;
-    hiddenLayerSize = 3;
-    outputLayerSize= 1;
-    numHiddenLayers = 1;
-    numExamples = 3;
+    inputLayerSize = inputLayerSize_;
+    hiddenLayerSize = hiddenLayerSize_;
+    outputLayerSize= outputLayerSize_;
+    numHiddenLayers = numHiddenLayers_;
+    numExamples = numExamples_;
     weightDecay = 0;
-    learningRate = 0.7;
+    learningRate = 0.07;
 
     // Set lenghts of array matrix containers
     weights = new Matrix[numHiddenLayers+1];
     biases = new Matrix[numHiddenLayers+1];
+    biasNodes = new Matrix[numHiddenLayers+1];
     a = new Matrix[numHiddenLayers+1]; // a[1] (last elem) is yHat
     z = new Matrix[numHiddenLayers+1]; // z[1] (last elem) is yHat w/o sigmoid
     if (numHiddenLayers == 0) {
@@ -41,12 +45,9 @@ class Neural_Network {
       visWeights = new float[(inputLayerSize + 1)*hiddenLayerSize + (numHiddenLayers - 1)*(hiddenLayerSize + 1)*(hiddenLayerSize) + (hiddenLayerSize + 1)*outputLayerSize];
     }
 
-
-    /*
-     Weights are matrix that are multiplied by activity of prev layer to get activity of next layer
-     Dimension of Weights -> inputLayerSize * hiddenLayerSize or hiddenLayerSize^2 or hiddenLayerSize * outputLayerSize
-     Dimensions of Biases -> numExamples * hiddenLayerSize or numExamples * outputLayerSize
-     */
+    // Weights are matrix that are multiplied by activity of prev layer to get activity of next layer
+    // Dimension of Weights -> inputLayerSize * hiddenLayerSize or hiddenLayerSize^2 or hiddenLayerSize * outputLayerSize
+    // Dimensions of Biases -> numExamples * hiddenLayerSize or numExamples * outputLayerSize
 
     int weight_iter = 0;
     int bias_iter = 0;
@@ -66,15 +67,15 @@ class Neural_Network {
       }
       weights[weight_iter] = new Matrix(W);
       weight_iter++;
-
-      B = new float [numExamples][outputLayerSize];
+      // Creating Bias Matrix
+      B = new float [1][outputLayerSize];
       b = new float[outputLayerSize];
       for (int i = 0; i < outputLayerSize; i++) {
         b[i] = random(-1, 1);
         visWeights[vis_iter] = b[i];
         vis_iter++;
       }
-      for (int i = 0; i < numExamples; i++) {
+      for (int i = 0; i < 1; i++) {
         B[i] = b;
       }
       biases[bias_iter] = new Matrix(B);
@@ -92,14 +93,14 @@ class Neural_Network {
       weights[weight_iter] = new Matrix(W);
       weight_iter++;
 
-      B = new float [numExamples][hiddenLayerSize];
+      B = new float [1][hiddenLayerSize];
       b = new float[hiddenLayerSize];
       for (int i = 0; i < hiddenLayerSize; i++) {
         b[i] = random(-1, 1);
         visWeights[vis_iter] = b[i];
         vis_iter++;
       }
-      for (int i = 0; i < numExamples; i++) {
+      for (int i = 0; i < 1; i++) {
         B[i] = b;
       }
       biases[bias_iter] = new Matrix(B);
@@ -118,14 +119,14 @@ class Neural_Network {
         }
         weights[weight_iter] = new Matrix(W);
         weight_iter++;
-        B = new float [numExamples][hiddenLayerSize];
+        B = new float [1][hiddenLayerSize];
         b = new float [hiddenLayerSize];
         for (int i = 0; i < hiddenLayerSize; i++) {
           b[i] = random(-1, 1);
           visWeights[vis_iter] = b[i];
           vis_iter++;
         }
-        for (int i = 0; i < numExamples; i++) {
+        for (int i = 0; i < 1; i++) {
           B[i] = b;
         }
         biases[bias_iter] = new Matrix(B);
@@ -144,19 +145,26 @@ class Neural_Network {
       }
       weights[weight_iter] = new Matrix(W);
       weight_iter++;
-      B = new float[numExamples][outputLayerSize];
+      B = new float[1][outputLayerSize];
       b = new float [outputLayerSize];
       for (int i = 0; i < outputLayerSize; i++) {
         b[i] = random(-1, 1);
         visWeights[i] = b[i];
         vis_iter++;
       }
-      for (int i = 0; i < numExamples; i++) {
+      for (int i = 0; i < 1; i++) {
         B[i] = b;
       }
       biases[bias_iter] = new Matrix(B);
       bias_iter++;
     }
+
+    // Initialize bias nodes
+    B = new float[numExamples][1];
+    for (int i = 0; i < numExamples; i++) {
+      B[i][0] = 1.0;
+    }
+    Arrays.fill(biasNodes, new Matrix(B));
 
     /*
       INITIALIZING NEURAL NETWORK VISUALIZATION VALUES
@@ -182,20 +190,105 @@ class Neural_Network {
       }
     }
 
-    /*
-    print("Biases: \n");
-     for (Matrix m : biases) {
-     m. showMatrix();
-     }
-     print("Weights: \n");
-     for (Matrix m : weights) {
-     m.showMatrix();
-     }
-     */
-
-    forward(init_x); // initialize activation matrix
+    forward(new Matrix(init_x)); // initialize activation matrix
     initNN();
   }
+
+  void testNetwork() {
+    /*
+      void testNetwork() - creates a deterministic simple network
+     */
+
+    //Define HyperParameters
+    inputLayerSize = 1;
+    hiddenLayerSize = 0;
+    outputLayerSize= 1;
+    numHiddenLayers = 0;
+    numExamples = 3;
+    weightDecay = 0;
+    learningRate = 0.07;
+
+    // Set lenghts of array matrix containers
+    weights = new Matrix[numHiddenLayers+1];
+    biasNodes = new Matrix[numHiddenLayers+1];
+    biases = new Matrix[numHiddenLayers+1];
+    a = new Matrix[numHiddenLayers+1]; // a[1] (last elem) is yHat
+    z = new Matrix[numHiddenLayers+1]; // z[1] (last elem) is yHat w/o sigmoid
+    if (numHiddenLayers == 0) {
+      visWeights = new float[(inputLayerSize + 1)*outputLayerSize];
+    } else {
+      visWeights = new float[(inputLayerSize + 1)*hiddenLayerSize + (numHiddenLayers - 1)*(hiddenLayerSize + 1)*(hiddenLayerSize) + (hiddenLayerSize + 1)*outputLayerSize];
+    }
+
+
+    int weight_iter = 0;
+    int bias_iter = 0;
+    float [][] B;
+    float [] b;
+
+    int vis_iter = 0;
+
+    // Weight and Bias Matrix between input and output layer
+    float [][] W = new float [inputLayerSize][outputLayerSize];
+    for (int i = 0; i < inputLayerSize; i++) {
+      for (int j = 0; j < outputLayerSize; j++) {
+        W[i][j] = 0.5; // deterministic
+        visWeights[vis_iter] = W[i][j];
+        vis_iter++;
+      }
+    }
+    weights[weight_iter] = new Matrix(W);
+    weight_iter++;
+
+    B = new float [1][outputLayerSize];
+    b = new float[outputLayerSize];
+    for (int i = 0; i < outputLayerSize; i++) {
+      b[i] = 0.5;
+      visWeights[vis_iter] = b[i];
+      vis_iter++;
+    }
+    for (int i = 0; i < 1; i++) {
+      B[i] = b;
+    }
+    biases[bias_iter] = new Matrix(B);
+    bias_iter++;
+
+    // Initialize bias nodes
+    B = new float[numExamples][1];
+    for (int i = 0; i < numExamples; i++) {
+      B[i][0] = 1.0;
+    }
+    Arrays.fill(biasNodes, new Matrix(B));
+
+    /*
+      INITIALIZING NEURAL NETWORK VISUALIZATION VALUES
+     */
+    displaySize = new float[2];
+    displaySize[0] = width * (0.35);
+    displaySize[1] = height * (0.35);
+    nodeSize = 10;
+    if (inputLayerSize+1 > hiddenLayerSize+1 && inputLayerSize+1 > outputLayerSize) { // +1 for biases
+      MAX = inputLayerSize+1;
+    } else if (hiddenLayerSize+1 > outputLayerSize && hiddenLayerSize+1 > outputLayerSize) {
+      MAX = hiddenLayerSize+1;
+    } else {
+      MAX = outputLayerSize;
+    }
+    nodePos = new float[numHiddenLayers+2][MAX][2];
+
+    // Initialize variables
+    float [][] init_x = new float [numExamples][inputLayerSize];
+    for (int i = 0; i < numExamples; i++) {
+      for (int j = 0; j < inputLayerSize; j++) {
+        init_x[i][j] = 0.0;
+      }
+    }
+
+    forward(new Matrix(init_x)); // initialize activation matrix
+    initNN();
+  }
+
+
 
   void setBatchSize(int numExamples_) {
     /*
@@ -207,6 +300,8 @@ class Neural_Network {
       }
     }
   }
+
+
   Matrix logistic(Matrix z) {
     /*
       float [][] logistic(float[][] z) - Applies logistic sigmoid function
@@ -270,16 +365,18 @@ class Neural_Network {
       float [][] ReLU(float[][] z) - Applies the rectified linear unit activation funtion
      float [][] z - matrix values
      */
-    for (int i = 0; i < z.matrix.length; i++) {
-      for (int j = 0; j < z.matrix[0].length; j++) {
-        if (z.matrix[i][j] < 0) {
-          z.matrix[i][j] = 0.01*(z.matrix[i][j]);
+    Matrix result = new Matrix("0", 1, 1);
+    result.copyMatrix(z);
+    for (int i = 0; i < result.matrix.length; i++) {
+      for (int j = 0; j < result.matrix[0].length; j++) {
+        if (result.matrix[i][j] < 0) {
+          result.matrix[i][j] = 0.01*(result.matrix[i][j]);
         } else {
-          z.matrix[i][j] = z.matrix[i][j];
+          result.matrix[i][j] = result.matrix[i][j];
         }
       }
     }
-    return z;
+    return result;
   }
 
   Matrix ReLU_Prime(Matrix z) {
@@ -287,72 +384,85 @@ class Neural_Network {
       float [][] ReLU_Prime(float[][] z) - Applies the derivative of the rectified linear unit activation funtion
      float [][] z - matrix values
      */
-    for (int i = 0; i < z.matrix.length; i++) {
-      for (int j = 0; j < z.matrix[0].length; j++) {
-        if (z.matrix[i][j] < 0) {
-          z.matrix[i][j] = 0.01;
+    Matrix result = new Matrix("0", 1, 1);
+    result.copyMatrix(z);
+    for (int i = 0; i < result.matrix.length; i++) {
+      for (int j = 0; j < result.matrix[0].length; j++) {
+        if (result.matrix[i][j] < 0) {
+          result.matrix[i][j] = 0.01;
         } else {
-          z.matrix[i][j] = 1;
+          result.matrix[i][j] = 1;
         }
       }
     }
-    return z;
+    return result;
   }
 
-  void forward(float [][]x_) {
+  void forward(Matrix x_) {
     /*
       void forward(float [][]x_) - Propagate inputs and activites through the network
      float [][] x_ - input values
      */
 
-    x = new Matrix(x_); // stores values in Matrix object to get functionality
+    x = x_; // stores values in Matrix object to get functionality
 
     if (numHiddenLayers == 0) { 
       // Propagate inputs to output layer
-      z[0] = x.dotProduct(weights[0]).addMatrix(biases[0]);
+      z[0] = x.dotProduct(weights[0]).addMatrix(biasNodes[0].dotProduct(biases[0]));
       a[0] = ReLU(z[0]);
     } else {
       // Propagate inputs to first hidden layer
-      z[0] = x.dotProduct(weights[0]).addMatrix(biases[0]);
+      z[0] = x.dotProduct(weights[0]).addMatrix(biasNodes[0].dotProduct(biases[0]));
       a[0] = ReLU(z[0]);
       for (int i = 1; i < numHiddenLayers; i++) {
         // Propagate inputs through hidden layers
-        z[i] = a[i-1].dotProduct(weights[i]).addMatrix(biases[i]);
+        z[i] = a[i-1].dotProduct(weights[i]).addMatrix(biasNodes[i].dotProduct(biases[i]));
         a[i] = ReLU(z[i]);
       }
       // Propagate inputs from last hidden layer to output layer
-      z[z.length - 1] = a[a.length-2].dotProduct(weights[weights.length - 1]).addMatrix(biases[biases.length - 1]);
+      z[z.length - 1] = a[a.length-2].dotProduct(weights[weights.length - 1]).addMatrix(biasNodes[biases.length - 1].dotProduct(biases[biases.length - 1]));
       a[a.length - 1] = ReLU(z[z.length - 1]);
     } 
     yHat = new Matrix( a[a.length - 1].matrix );
   }
 
-  ArrayList<Matrix> backProp(Matrix X, Matrix y) {
+  ArrayList<ArrayList<Matrix>> backProp(Matrix X, Matrix y) {
     /*
       void backProp(Matrix X, MatrixY) - used to train Neural Network
      Determines the contribution of each weight towards the error
      */
     ArrayList <Matrix> dJdW = new ArrayList(); // stores matrices of each dJdW value
+    ArrayList <Matrix> dJdWb = new ArrayList(); // stores matrices of each dJdWb value
     ArrayList <Matrix> delta = new ArrayList(); // stores matrices of each backpropagating error
-    forward(X.matrix);
+    ArrayList<ArrayList<Matrix>> result = new ArrayList<ArrayList<Matrix>>(); 
+    forward(X);
 
     // Quantifying Error
-    println(y.relativeError(yHat));
+    println("ERROR: " + str(y.relativeError(yHat)));
 
-    // Compute derivative wrt to W
-    delta.add(0, y.subtractMatrix(yHat).multiplyScalar(-1).multiplyMatrix(ReLU_Prime(z[z.length-1])));
-    dJdW.add(0, a[a.length-2].transpose().dotProduct(delta.get(0)));
-
-    for (int i = weights.length-1; i > 1; i--) {
-      // Iterate from self.weights[-1] -> self.weights[1]
-      delta.add(0, delta.get(0).dotProduct(weights[i].transpose()).multiplyMatrix(ReLU_Prime(z[i-1])));
-      dJdW.add(0, a[i-2].transpose().dotProduct(delta.get(0)).addMatrix(weights[i-1].multiplyScalar(weightDecay)));
+    if (numHiddenLayers == 0) {
+      // Backpropagate error from output layer to input Layer
+      delta.add(0, y.subtractMatrix(yHat).multiplyScalar(-1).multiplyMatrix(ReLU_Prime(z[z.length-1])));
+      dJdW.add(0, X.transpose().dotProduct(delta.get(0)).addMatrix(weights[0].multiplyScalar(weightDecay)));
+      dJdWb.add(0, biasNodes[0].transpose().dotProduct(delta.get(0)).addMatrix(biases[0].multiplyScalar(weightDecay)));
+    } else {
+      // Compute derivative wrt to W
+      delta.add(0, y.subtractMatrix(yHat).multiplyScalar(-1).multiplyMatrix(ReLU_Prime(z[z.length-1])));
+      dJdW.add(0, a[a.length-2].transpose().dotProduct(delta.get(0)).addMatrix(weights[weights.length-1].multiplyScalar(weightDecay)));
+      dJdWb.add(0, biasNodes[biasNodes.length-1].transpose().dotProduct(delta.get(0)).addMatrix(biases[biasNodes.length-1].multiplyScalar(weightDecay)));
+      for (int i = weights.length-1; i > 1; i--) {
+        // Iterate from self.weights[-1] -> self.weights[1]
+        delta.add(0, delta.get(0).dotProduct(weights[i].transpose()).multiplyMatrix(ReLU_Prime(z[i-1])));
+        dJdW.add(0, a[i-2].transpose().dotProduct(delta.get(0)).addMatrix(weights[i-1].multiplyScalar(weightDecay)));
+        dJdWb.add(0, biasNodes[i-1].transpose().dotProduct(delta.get(0)).addMatrix(biases[i-1].multiplyScalar(weightDecay)));
+      }
+      delta.add(0, delta.get(0).dotProduct(weights[1].transpose()).multiplyMatrix(ReLU_Prime(z[0])));
+      dJdW.add(0, X.transpose().dotProduct(delta.get(0)).addMatrix(weights[0].multiplyScalar(weightDecay)));
+      dJdWb.add(0, biasNodes[0].transpose().dotProduct(delta.get(0)).addMatrix(biases[0].multiplyScalar(weightDecay)));
     }
-
-    delta.add(0, delta.get(0).dotProduct(weights[1].transpose()).multiplyMatrix(ReLU_Prime(z[0])));
-    dJdW.add(0, X.transpose().dotProduct(delta.get(0)).addMatrix(weights[0].multiplyScalar(weightDecay)));
-
-    return dJdW;
+    result.add(dJdW);
+    result.add(dJdWb);
+    return result;
   }
 
   float error(Matrix a, Matrix b) {
@@ -379,10 +489,18 @@ class Neural_Network {
      Matrix y - correct answers
      */
     ArrayList<Matrix> dJdW;
-    for (int t = 0; t < 600000; t++) {
-      dJdW = backProp(X, y);
+    ArrayList<Matrix> dJdWb;
+    for (int t = 0; t < 60000; t++) {
+      ArrayList<ArrayList<Matrix>> result = backProp(X, y);
+      dJdW = result.get(0);
+      dJdWb = result.get(1);
+      print("dJdW: ");
+      dJdW.get(0).showMatrix();
+      print("dJdWb: ");
+      dJdWb.get(0).showMatrix();
       for (int i = 0; i < dJdW.size(); i++) {
         weights[i].subtractMatrixLocal(dJdW.get(i).multiplyScalar(learningRate));
+        biases[i].subtractMatrixLocal(dJdWb.get(i).multiplyScalar(learningRate));
       }
     }
   }
